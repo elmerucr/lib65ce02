@@ -280,6 +280,10 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 					memory[effective_address_l] = memory[effective_address_l] & (0xff - (0x01 << temp_byte));
 				}
 				break;
+			case 0x0b :								// tsy
+				yReg = (spReg & 0xff00) >> 8;
+				setStatusForNZ(yReg);
+				break;
 			case 0x0f :								// bbr 0,bp,rel
 			case 0x1f :								// bbr 1,bp,rel
 			case 0x2f :								// bbr 2,bp,rel
@@ -315,9 +319,13 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 					}
 				}
 				break;
-			case 0x0b :								// tsy
-				yReg = (spReg & 0xff00) >> 8;
-				setStatusForNZ(yReg);
+			case 0x10 :								// bpl rel
+			case 0x13 :								// bpl wrel
+				if(thisCPU->nFlag) {			// n flag is set, skip to next instruction
+					pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
+				} else {						// n flag not set, take relative jump
+					pcReg = effective_address_l;
+				}
 				break;
 			case 0x1a :								// inc instruction
 				aReg++;
