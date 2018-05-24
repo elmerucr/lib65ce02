@@ -2,7 +2,7 @@
 ## Description
 This code, written in c, aims to be a cycle exact emulation of the 65ce02 cpu. Its programming interface is inspired by [Musashi Motorola 680x0 emulator](https://github.com/kstenerud/Musashi) by Karl Stenerud. Typically this library will not take control of the applications' main thread, but in stead run a designated amount of cycles and return the consumed cycles.
 ## Why?
-I am aware many emulation libraries for older cpu's already exist. I do it just for fun and development of my own virtual 65ce02 based computer system, another project in the works, also called 'Hitting the Virtual Metal'.
+I am aware many emulation libraries for older cpu's already exist. I do it just for fun and development of my own virtual 65ce02 based computer system, another project in the works, called 'Hitting the Virtual Metal'.
 ## Compiling
 It doesn't compile into a shared library. If you want the cpu emulation core into your own project, just copy all ````csg65ce02*.*```` files into your source tree. To compile the ````emulate_65ce02```` application: make a ````build```` folder in the source tree and enter it and run the following commands:
 ````
