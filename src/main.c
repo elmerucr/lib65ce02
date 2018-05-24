@@ -1,6 +1,6 @@
 //  main.c
 //
-//  Created by Elmer van Baal on 26/4/2018
+//  Created by elmerucr on 26/4/2018
 //  Copyright © 2018 elmerucr. All rights reserved.
 
 #include <stdio.h>

@@ -1,6 +1,6 @@
 //  csg65ce02_macros.h
 //
-//  Created by Elmer van Baal on 11/01/2017 - 11/4/2018
+//  Created by elmerucr on 11/01/2017 - 11/4/2018
 //  Copyright © 2018 elmerucr. All rights reserved.
 //
 //  This file is only to be included from csg65ce02.c, nowhere else!
