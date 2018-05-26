@@ -5,7 +5,6 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include "csg65ce02.h"
 #include "csg65ce02_macros.h"
 
