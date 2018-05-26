@@ -1,0 +1,3 @@
+- Implement all missing instructions.
+- The ````brk```` instruction needs special attention. Several functions that implement interrupts ("special flows") need to be done and will be called by the ````brk```` instruction.
+- Currently, memory is defined as a simple array of 64k. Although access seems quick and easy, it doesn't allow real memory management by a virtual mmu (emulate ram/rom/illegal access/...). Memory access functions must be defined in the header files,  but implemented by a memory management unit (mmu).
