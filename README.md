@@ -1,10 +1,10 @@
 # lib65ce02
 ## Description
-This code, written in c, aims to be a cycle exact emulation of the 65ce02 cpu. Its programming interface is inspired by [Musashi Motorola 680x0 emulator](https://github.com/kstenerud/Musashi) by Karl Stenerud. Typically this library will not take control of the applications' main thread, but in stead run a designated amount of cycles and return the consumed cycles.
+This code, written in c, aims to be a cycle exact emulation of the 65ce02 cpu. Its programming interface is inspired by [Musashi Motorola 680x0 emulator](https://github.com/kstenerud/Musashi) by Karl Stenerud. Typically, this library will not take control of the main thread, in stead it will run a designated amount of cycles using the ````csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles)```` function that returns the amount of consumed cycles.
 ## Why?
-I am aware many emulation libraries for older cpu's already exist. I do it just for fun and development of my own virtual 65ce02 based computer system (another project in the works): C256 or 'Hitting the Virtual Metal'.
+Many emulation libraries for older cpu's already exist. This is just for fun and for development of a virtual 65ce02 based computer system.
 ## Compiling
-It doesn't compile into a shared library or similar. If you want the cpu emulation core into your own project, just copy all ````csg65ce02*.*```` files into your source tree. To compile the ````emulate_65ce02```` application: make a ````build```` folder in the source tree and enter it and run the following commands:
+It doesn't compile into a shared library or similar. If you want the cpu emulation core into your own project, just copy all ````csg65ce02*.*```` files into your source tree. To compile the ````emulate_65ce02```` application: make a ````build```` folder in the ````lib65ce02```` project tree, enter it and run the following commands:
 ````
 cmake ..
 make
