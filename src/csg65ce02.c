@@ -1,6 +1,6 @@
 //  csg65ce02.c
 //
-//  Created by elmerucr from 11/01/2017 - 11/4/2018
+//  Created by elmerucr on 11/01/2017.
 //  Copyright © 2018 elmerucr. All rights reserved.
 
 #include <stdio.h>

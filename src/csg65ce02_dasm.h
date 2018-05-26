@@ -1,6 +1,6 @@
 //  csg65ce02_disassemble.h
 //
-//  Created by elmerucr 24/4/2018
+//  Created by elmerucr on 24/4/2018.
 //  Copyright © 2018 elmerucr. All rights reserved.
 
 #ifndef CSG65CE02_DASM_H
