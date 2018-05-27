@@ -29,7 +29,7 @@ typedef struct {
 
 	// other things to keep track of
 	uint8_t		*ram;								// pointer to memory array
-	uint8_t		cycles_last_executed_instruction;	// necessary to check if irq will be ackn.
+	uint8_t		cycles_last_executed_instruction;	// necessary to check if an irq can be acknowl.
 
 } csg65ce02;
 
@@ -67,6 +67,10 @@ void csg65ce02_init(csg65ce02 *thisCPU, uint8_t *mem);
 
 //	Reset procedure
 void csg65ce02_reset(csg65ce02 *thisCPU);
+
+//	Memory Operations
+uint8_t	csg65ce02_read_byte(uint16_t address);
+void	csg65ce02_write_byte(uint16_t address, uint8_t byte);
 
 // stack operations, take correctly into account status of e flag
 void	csg65ce02_push_byte(csg65ce02 *thisCPU, uint8_t byte);
