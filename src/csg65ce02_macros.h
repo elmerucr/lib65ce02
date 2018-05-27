@@ -47,8 +47,7 @@
 #define setStatusForNZ(n)   setStatusForN(n); setStatusForZ(n)
 
 // memory access macros
-#define memory      thisCPU->ram
 #define pcReg1		(uint16_t)(pcReg+1)
 #define pcReg2		(uint16_t)(pcReg+2)
-#define op1			memory[pcReg1]
-#define op2			memory[pcReg2]
+#define op1			csg65ce02_read_byte(pcReg1)
+#define op2			csg65ce02_read_byte(pcReg2)

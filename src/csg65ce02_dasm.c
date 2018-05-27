@@ -66,14 +66,14 @@ const char *operand_modes[20][2] = {
 	{ "$","" }
 };
 
-uint8_t csg65ce02_dasm(uint8_t *mem, uint16_t address, char *buffer, int length) {
-	int addressing_mode = addressing_mode_per_instruction[mem[address]];
-	int mnemonic_index = mnemonic_per_instruction[mem[address]];
-	int instr_length = bytes_per_instruction[mem[address]];
+uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length) {
+	int addressing_mode = addressing_mode_per_instruction[csg65ce02_read_byte(address)];
+	int mnemonic_index = mnemonic_per_instruction[csg65ce02_read_byte(address)];
+	int instr_length = bytes_per_instruction[csg65ce02_read_byte(address)];
 
-	int opcode = mem[address];
-	uint8_t operand_byte0 = mem[(uint16_t)(address+1)];
-	uint8_t operand_byte1 = mem[(uint16_t)(address+2)];
+	int opcode = csg65ce02_read_byte(address);
+	uint8_t operand_byte0 = csg65ce02_read_byte((uint16_t)(address+1));
+	uint8_t operand_byte1 = csg65ce02_read_byte((uint16_t)(address+2));
 
 	switch( addressing_mode ) {
 		case IMM :			// imm

@@ -28,7 +28,7 @@ typedef struct {
 	uint8_t		cFlag;		// Carry
 
 	// other things to keep track of
-	uint8_t		*ram;								// pointer to memory array
+	//uint8_t		*ram;								// pointer to memory array
 	uint8_t		cycles_last_executed_instruction;	// necessary to check if an irq can be acknowl.
 
 } csg65ce02;
@@ -61,9 +61,6 @@ extern const int addressing_mode_per_instruction[];
 extern const uint8_t bytes_per_instruction[];
 extern const uint8_t cycles_per_instruction[];
 extern const uint8_t modify_pc_per_instruction[];
-
-//	For now, init just connects a memory pointer to the cpu
-void csg65ce02_init(csg65ce02 *thisCPU, uint8_t *mem);
 
 //	Reset procedure
 void csg65ce02_reset(csg65ce02 *thisCPU);

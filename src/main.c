@@ -11,10 +11,20 @@
 
 #define TEXT_BUFFER_SIZE 64
 
+// prepare 64k memory
+uint8_t memory0[65536];
+
+// and define memory access functions
+inline uint8_t csg65ce02_read_byte(uint16_t address) {
+	return memory0[address];
+}
+
+inline void csg65ce02_write_byte(uint16_t address, uint8_t byte) {
+	memory0[address] = byte;
+}
+
 int main() {
-	// prepare 64k memory
-	uint8_t memory0[65536];
-	// fill it with alternating pattern
+	// fill memory it with alternating pattern
 	for(int i=0; i<65536; i++) {
 		memory0[i] = (i & 64) ? 0xff : 0x00;
 	}
@@ -92,13 +102,12 @@ int main() {
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text text_buffer to print strings
 	csg65ce02 cpu0;
-	csg65ce02_init(&cpu0,memory0);
 
 	// reset and print message
 	printf("\nResetting 65ce02\n");
 	csg65ce02_reset(&cpu0);
 	csg65ce02_dump_status(&cpu0);
-	csg65ce02_dasm(memory0,cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
+	csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 	printf("%s <--> %i cycle(s)\n", text_buffer, cycles_per_instruction[memory0[cpu0.pc]]);
 	printf("\nType 'h' for help\n");
 
@@ -121,7 +130,7 @@ int main() {
 			case 'd' : {
 				uint16_t start = cpu0.pc;
 					for(int i=0; i<8; i++) {
-						start += csg65ce02_dasm(memory0, start, text_buffer, TEXT_BUFFER_SIZE);
+						start += csg65ce02_dasm(start, text_buffer, TEXT_BUFFER_SIZE);
 						puts(text_buffer);
 					}
 				}
@@ -139,19 +148,19 @@ int main() {
 			case 'n' :
 				csg65ce02_execute(&cpu0,0);
 				csg65ce02_dump_status(&cpu0);
-				csg65ce02_dasm(memory0,cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
+				csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 				printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[memory0[cpu0.pc]]);
 				break;
 			case 'r' :
 				printf("Resetting 65ce02\n");
 				csg65ce02_reset(&cpu0);
 				csg65ce02_dump_status(&cpu0);
-				csg65ce02_dasm(memory0,cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
+				csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 				puts(text_buffer);
 				break;
 			case 's' :
 				csg65ce02_dump_status(&cpu0);
-				csg65ce02_dasm(memory0,cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
+				csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 				printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[memory0[cpu0.pc]]);
 				break;
 			case 't' :

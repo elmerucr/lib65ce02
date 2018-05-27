@@ -9,6 +9,6 @@
 #include <stdint.h>
 
 // function disassembles one instr at given address and returns the total size of the instruction
-uint8_t csg65ce02_dasm(uint8_t *mem, uint16_t address, char *buffer, int length);
+uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length);
 
 #endif

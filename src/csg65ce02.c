@@ -84,10 +84,6 @@ const uint8_t modify_pc_per_instruction[256] = {
 	1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1
 };
 
-void csg65ce02_init(csg65ce02 *thisCPU, uint8_t *mem) {
-    thisCPU->ram = mem;
-}
-
 void csg65ce02_reset(csg65ce02 *thisCPU) {
     //aReg = 0x00;
     //xReg = 0x00;
@@ -105,32 +101,32 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 	thisCPU->zFlag = 0x00;
 	thisCPU->cFlag = 0x00;
 
-    pcReg = memory[0xfffc] | memory[0xfffd] << 8;
+    pcReg = csg65ce02_read_byte(0xfffc) | (csg65ce02_read_byte(0xfffd) << 8);
 
-	thisCPU->cycles_last_executed_instruction = 1;	// safe value after reset
+	thisCPU->cycles_last_executed_instruction = 1;	// load a safe value after reset, so irq can not be ackn
 }
 
 inline void csg65ce02_push_byte(csg65ce02 *thisCPU, uint8_t byte) {
 	if( thisCPU->eFlag ) {							// 8 bit stack pointer
-		memory[(spReg & 0x00ff) | 0x0100] = byte;
+		csg65ce02_write_byte((spReg & 0x00ff) | 0x0100, byte);
 		uint16_t temp_word = spReg & 0xff00;
 		spReg--;
 		spReg = (spReg & 0x00ff) | temp_word;
 	} else {								// 16 bit stack pointer
-		memory[spReg] = byte;
+		csg65ce02_write_byte(spReg, byte);
 		spReg--;
 	}
 }
 
 inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU) {
-	if( thisCPU->eFlag ) {							// 8 bit stack pointer
-		uint16_t temp_word = spReg & 0xff00;			// sph must keep same value
-		spReg++;										// increase the sp
-		spReg = (spReg & 0x00ff) | temp_word;			// correct it if it crossed a page border
-		return memory[(spReg & 0x00ff) | 0x0100];		// pull one byte and return it
-	} else {										// 16 bit stack pointer
+	if( thisCPU->eFlag ) {											// 8 bit stack pointer
+		uint16_t temp_word = spReg & 0xff00;						// sph must keep same value
+		spReg++;													// increase the sp
+		spReg = (spReg & 0x00ff) | temp_word;						// correct it if it crossed a page border
+		return csg65ce02_read_byte((spReg & 0x00ff) | 0x0100);		// pull one byte and return it
+	} else {														// 16 bit stack pointer
 		spReg++;
-		return memory[spReg];
+		return csg65ce02_read_byte(spReg);
 	}
 }
 
@@ -147,7 +143,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 	int running = 1;
 
 	do {
-		current_opcode = memory[pcReg];		// fetch opcode at current pc
+		current_opcode = csg65ce02_read_byte(pcReg);		// fetch opcode at current pc
 
 		switch( addressing_mode_per_instruction[current_opcode]) {
 			case IMM :
@@ -178,16 +174,16 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				effective_address_l = (op1 | (op2 << 8)) + yReg;
 				break;
 			case BP_X_IND :
-				effective_address_l =	memory[(op1 + xReg) | (bReg << 8)] |
-										(memory[(op1 + xReg + 1) | (bReg << 8)] << 8);
+				effective_address_l =	csg65ce02_read_byte((op1 + xReg) | (bReg << 8)) |
+										(csg65ce02_read_byte((op1 + xReg + 1) | (bReg << 8)) << 8);
 				break;
 			case BP_IND_Y :
-				effective_address_l =	(memory[ op1 | (bReg << 8) ] |
-										(memory[ ((uint8_t)(op1 + 1)) | (bReg << 8) ] << 8)) + yReg;
+				effective_address_l =	(csg65ce02_read_byte( op1 | (bReg << 8) ) |
+										(csg65ce02_read_byte( ((uint8_t)(op1 + 1)) | (bReg << 8) ) << 8)) + yReg;
 				break;
 			case BP_IND_Z :
-				effective_address_l =	(memory[ op1 | (bReg << 8) ] |
-										(memory[ ((uint8_t)(op1 + 1)) | (bReg << 8) ] << 8)) + zReg;
+				effective_address_l =	(csg65ce02_read_byte( op1 | (bReg << 8) ) |
+										(csg65ce02_read_byte( ((uint8_t)(op1 + 1)) | (bReg << 8) ) << 8)) + zReg;
 				break;
 			case D_SP_IND_Y :
 				// IMPLEMENT!!!!!
@@ -202,7 +198,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				effective_address_l = (uint16_t)(pcReg + 2 + temp_word);					// note "2"!
 				break;
 			case ABS_IND :
-				effective_address_l = memory[op1 | (op2 << 8)] | (memory[(op1 | (op2 << 8))+1] << 8);
+				effective_address_l = csg65ce02_read_byte(op1 | (op2 << 8)) | (csg65ce02_read_byte((op1 | (op2 << 8))+1) << 8);
 				break;
 			case BPREL :
 				temp_byte = op2;															// note "op2"!
@@ -211,7 +207,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				break;
 			case ABS_X_IND :
 				temp_word = (uint16_t)((op1 | (op2 << 8)) + xReg);
-				effective_address_l = memory[temp_word] | (memory[(uint16_t)(temp_word+1)] << 8);
+				effective_address_l = csg65ce02_read_byte(temp_word) | (csg65ce02_read_byte((uint16_t)(temp_word+1)) << 8);
 				break;
 			case IMMW :
 				// IMPLEMENT!
@@ -236,7 +232,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0x15 :								// bp,x
 			case 0x19 :								// abs,y
 			case 0x1d :								// abs,x
-				aReg = aReg | (memory[effective_address_l]);
+				aReg = aReg | (csg65ce02_read_byte(effective_address_l));
 				setStatusForNZ(aReg);
 				break;
 			case 0x02 :								// cle
@@ -274,9 +270,9 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				// Which bit from bp addres is going to be tested? Store it in temp_byte
 				temp_byte = (current_opcode & 0x70) >> 4;
 				if(current_opcode & 0x80) {				// set memory bit
-					memory[effective_address_l] = memory[effective_address_l] | (0x01 << temp_byte);
+					csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) | (0x01 << temp_byte) );
 				} else {								// reset (clear) memory bit
-					memory[effective_address_l] = memory[effective_address_l] & (0xff - (0x01 << temp_byte));
+					csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) & (0xff - (0x01 << temp_byte)));
 				}
 				break;
 			case 0x0b :								// tsy
@@ -305,13 +301,13 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				temp_byte = (current_opcode & 0x70) >> 4;
 				// effect. address (rel) was already calculated
 				if(current_opcode & 0x80) {				// test for set
-					if(memory[temp_word] & (0x01<<temp_byte)) {
+					if(csg65ce02_read_byte(temp_word) & (0x01<<temp_byte)) {
 						pcReg = effective_address_l;
 					} else {
 						pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
 					}
 				} else {								// test for clear
-					if(!(memory[temp_word] & (0x01<<temp_byte))) {
+					if(!(csg65ce02_read_byte(temp_word) & (0x01<<temp_byte))) {
 						pcReg = effective_address_l;
 					} else {
 						pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
@@ -341,7 +337,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0x34 :								// bit bp,x
 			case 0x3c :								// bit abs,x
 			case 0x89 :								// bit immediate
-				temp_byte = memory[effective_address_l];
+				temp_byte = csg65ce02_read_byte(effective_address_l);
 				setStatusForZ(temp_byte & aReg);
 				thisCPU->nFlag = temp_byte & nFlagValue;
 				thisCPU->vFlag = temp_byte & vFlagValue;
@@ -381,7 +377,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				pcReg = (uint16_t)(pcReg+1);		// increase pc by 1 and wrap if necessary
 				break;
 			case 0x64 :								// stz bp
-				memory[effective_address_l] = zReg;
+				csg65ce02_write_byte(effective_address_l, zReg);
 				break;
 			case 0x6b :								// tza
 				aReg = zReg;
@@ -394,13 +390,13 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0x81 :								// sta (bp,x)
 			case 0x8d :								// sta absolute
 			case 0x99 :								// sta abs,y
-				memory[effective_address_l] = aReg;
+				csg65ce02_write_byte(effective_address_l, aReg);
 				break;
 			case 0x84 :								// sty bp
 			case 0x8b :								// sty abs,x
 			case 0x8c :								// sty abs
 			case 0x94 :								// sty bp,x
-				memory[effective_address_l] = yReg;
+				csg65ce02_write_byte(effective_address_l, yReg);
 				break;
 			case 0x88 :								// dey
 				yReg--;
@@ -422,7 +418,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0xac :								// ldy abs
 			case 0xb4 :								// ldy bp,x
 			case 0xbc :								// ldy abs,x
-				yReg = memory[effective_address_l];
+				yReg = csg65ce02_read_byte(effective_address_l);
+				setStatusForNZ(yReg);
 				break;
 			case 0xa1 :								// lda (bp,x)
 			case 0xa5 :								// lda bp
@@ -433,7 +430,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0xb5 :								// lda bp,x
 			case 0xb9 :								// lda abs,y
 			case 0xbd :								// lda abs,x
-				aReg = memory[effective_address_l];
+				aReg = csg65ce02_read_byte(effective_address_l);
 				setStatusForNZ(aReg);
 				break;
 			case 0xa2 :								// ldx immediate
@@ -441,13 +438,13 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0xae :								// ldx abs
 			case 0xb6 :								// ldx bp,y
 			case 0xbe :								// ldx abs,y
-				xReg = memory[effective_address_l];
+				xReg = csg65ce02_read_byte(effective_address_l);
 				setStatusForNZ(xReg);
 				break;
 			case 0xa3 :								// ldz immediate
 			case 0xab :								// ldz abs
 			case 0xbb :								// ldz abs,x
-				zReg = memory[effective_address_l];
+				zReg = csg65ce02_read_byte(effective_address_l);
 				setStatusForNZ(zReg);
 				break;
 			case 0xaa :								// tax
@@ -469,7 +466,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0xc0 :								// cpy immediate
 			case 0xc4 :								// cpy bp
 			case 0xcc :								// cpy abs
-				temp_word = (0x0100 | yReg) - memory[effective_address_l];
+				temp_word = (0x0100 | yReg) - csg65ce02_read_byte(effective_address_l);
 				setStatusForNZ(0x00ff & temp_word);
 				if(temp_word & 0xff00) {		// yReg >= operand
 					thisCPU->cFlag = cFlagValue;
@@ -486,7 +483,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0xd5 :								// cmp bp,x
 			case 0xd9 :								// cmp abs,y
 			case 0xdd :								// cmp abs,x
-				temp_word = (0x0100 | aReg) - memory[effective_address_l];
+				temp_word = (0x0100 | aReg) - csg65ce02_read_byte(effective_address_l);
 				setStatusForNZ(0x00ff & temp_word);
 				if(temp_word & 0xff00) {		// aReg >= operand
 					thisCPU->cFlag = cFlagValue;
@@ -497,7 +494,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0xc2 :								// cpz immediate
 			case 0xd4 :								// cpz bp
 			case 0xdc :								// cpz absolute
-				temp_word = (0x0100 | zReg) - memory[effective_address_l];
+				temp_word = (0x0100 | zReg) - csg65ce02_read_byte(effective_address_l);
 				setStatusForNZ(0x00ff & temp_word);
 				if(temp_word & 0xff00) {		// zReg >= operand
 					thisCPU->cFlag = cFlagValue;
@@ -524,7 +521,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0xe0 :								// cpx immediate
 			case 0xe4 :								// cpx bp
 			case 0xec :								// cpx abs
-				temp_word = (0x0100 | xReg) - memory[effective_address_l];
+				temp_word = (0x0100 | xReg) - csg65ce02_read_byte(effective_address_l);
 				setStatusForNZ(0x00ff & temp_word);
 				if(temp_word & 0xff00) {		// xReg >= operand
 					thisCPU->cFlag = cFlagValue;
@@ -574,7 +571,7 @@ void csg65ce02_dump_status(csg65ce02 *thisCPU) {
 void csg65ce02_dump_page(csg65ce02 *thisCPU, uint8_t pageNo) {
     for(int i=0; i<0x100; i++) {
         if(i%16 == 0) printf("\n%04x", pageNo<<8 | i);
-        printf(" %02x", memory[pageNo << 8 | i]);
+        printf(" %02x", csg65ce02_read_byte(pageNo << 8 | i));
     }
     printf("\n");
 }
