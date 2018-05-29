@@ -382,6 +382,25 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				pcReg = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
 				pcReg = (uint16_t)(pcReg+1);		// increase pc by 1 and wrap if necessary
 				break;
+			case 0x61 :								// adc (bp,x) - NEEDS SPECIAL CARE FOR DECIMAL MODE
+			case 0x65 :								// adc bp
+			case 0x69 :								// adc immediate
+			case 0x6d :								// adc absolute
+			case 0x71 :								// adc (bp),y
+			case 0x72 :								// adc (bp),z
+			case 0x75 :								// adc bp,x
+			case 0x79 :								// adc abs,y
+			case 0x7d :								// adc abs,x
+				temp_word = aReg + csg65ce02_read_byte(effective_address_l) + thisCPU->cFlag;
+				if(temp_word & 0xff00) {
+					thisCPU->cFlag = cFlagValue;
+				} else {
+					thisCPU->cFlag = 0;
+				}
+				aReg = temp_word & 0xff;
+				setStatusForNZ(aReg);
+				// AND HOW TO DO OVERFLOW???
+				break;
 			case 0x64 :								// stz bp
 				csg65ce02_write_byte(effective_address_l, zReg);
 				break;
