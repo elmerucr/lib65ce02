@@ -322,6 +322,9 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 					pcReg = effective_address_l;
 				}
 				break;
+			case 0x18 :								// clc instruction
+				thisCPU->cFlag = 0x00;
+				break;
 			case 0x1a :								// inc instruction
 				aReg++;
 				setStatusForNZ(aReg);
@@ -336,7 +339,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0x2c :								// bit abs
 			case 0x34 :								// bit bp,x
 			case 0x3c :								// bit abs,x
-			case 0x89 :								// bit immediate
+			case 0x89 :								// bit immediate (note 65c02 not n&v flags!)
 				temp_byte = csg65ce02_read_byte(effective_address_l);
 				setStatusForZ(temp_byte & aReg);
 				thisCPU->nFlag = temp_byte & nFlagValue;
@@ -352,6 +355,9 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				} else {						// n flag not set, skip to next instruction
 					pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
 				}
+				break;
+			case 0x38 :								// sec
+				thisCPU->cFlag = cFlagValue;
 				break;
 			case 0x3a :								// dec
 				aReg--;
