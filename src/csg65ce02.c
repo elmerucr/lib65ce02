@@ -138,6 +138,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 	// temporary storage possibility
 	uint16_t	temp_word;
 	uint8_t		temp_byte;
+	uint8_t		temp_byte2;
 
 	unsigned int cycle_count = 0;
 	int running = 1;
@@ -391,15 +392,17 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 			case 0x75 :								// adc bp,x
 			case 0x79 :								// adc abs,y
 			case 0x7d :								// adc abs,x
-				temp_word = aReg + csg65ce02_read_byte(effective_address_l) + thisCPU->cFlag;
-				if(temp_word & 0xff00) {
-					thisCPU->cFlag = cFlagValue;
+				temp_byte = csg65ce02_read_byte(effective_address_l);
+				temp_word = aReg + temp_byte + thisCPU->cFlag;
+				if(temp_word & 0xff00) thisCPU->cFlag = cFlagValue; else thisCPU->cFlag = 0;
+				temp_byte2 = temp_word & 0xff;
+				if(((aReg^temp_byte2) & (temp_byte^temp_byte2)) & 0x80) {
+					thisCPU->vFlag = vFlagValue;
 				} else {
-					thisCPU->cFlag = 0;
+					thisCPU->vFlag = 0x00;
 				}
-				aReg = temp_word & 0xff;
+				aReg = temp_byte2;
 				setStatusForNZ(aReg);
-				// AND HOW TO DO OVERFLOW???
 				break;
 			case 0x64 :								// stz bp
 				csg65ce02_write_byte(effective_address_l, zReg);
