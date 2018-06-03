@@ -211,10 +211,12 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				effective_address_l = csg65ce02_read_byte(temp_word) | (csg65ce02_read_byte((uint16_t)(temp_word+1)) << 8);
 				break;
 			case IMMW :
-				// IMPLEMENT!
+				effective_address_l = pcReg1;
+				effective_address_h = pcReg2;
 				break;
 			case ABSW :
-				// IMPLEMENT!
+				effective_address_l = op1 | (op2 << 8);
+				effective_address_h = (uint16_t)(effective_address_l + 1);
 				break;
 			default :
 				break;
