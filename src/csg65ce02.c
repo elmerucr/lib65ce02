@@ -90,7 +90,8 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
     //yReg = 0x00;
 	zReg = 0x00;					// is actively set to 0 to emulate 65c02 stz instructions store zero
 	bReg = 0x00;					// init to 0 for correct emulation of earlier 65xx cpus ("zero-page")
-    spReg = 0x01fd;					// is this the correct value => yes (see pagetable ...)
+	spReg = 0x0201;
+    //spReg = 0x01fd;					// is this the correct value => yes (see pagetable ...)
 									// free to set this to another value manually
 
 	thisCPU->nFlag = 0x00;
@@ -106,18 +107,20 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 	thisCPU->cycles_last_executed_instruction = 1;	// load a safe value after reset, so irq can not be ackn
 }
 
+// stack operation push
 inline void csg65ce02_push_byte(csg65ce02 *thisCPU, uint8_t byte) {
 	if( thisCPU->eFlag ) {							// 8 bit stack pointer
-		csg65ce02_write_byte((spReg & 0x00ff) | 0x0100, byte);
+		csg65ce02_write_byte(spReg, byte);
 		uint16_t temp_word = spReg & 0xff00;
 		spReg--;
 		spReg = (spReg & 0x00ff) | temp_word;
-	} else {								// 16 bit stack pointer
+	} else {										// 16 bit stack pointer
 		csg65ce02_write_byte(spReg, byte);
 		spReg--;
 	}
 }
 
+// stack operation pull
 inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU) {
 	if( thisCPU->eFlag ) {											// 8 bit stack pointer
 		uint16_t temp_word = spReg & 0xff00;						// sph must keep same value
@@ -575,8 +578,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				break;
 			case 0xf4 :								// phw immediate
 			case 0xfc :								// phw absolute
-				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_h));
-				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_l));
+				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_h));	// CHECK!
+				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_l));	// CHECK!
 				break;
             default :								// opcode not implemented
 				printf("error: opcode not implemented\n");
@@ -594,13 +597,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 }
 
 void csg65ce02_dump_status(csg65ce02 *thisCPU) {
-	if( thisCPU->eFlag ) {
-		printf(" pc   ac xr yr zr bp sh   sl nvedizc\n");
-		printf("%04x  %02x %02x %02x %02x %02x %02x 01%02x %s%s%s%s%s%s%s\n\n", pcReg, aReg, xReg, yReg, zReg, bReg, spReg >> 8, spReg & 0x00ff, thisCPU->nFlag ? "*" : ".", thisCPU->vFlag ? "*" : ".", thisCPU->eFlag ? "*" : ".", thisCPU->dFlag ? "*" : ".", thisCPU->iFlag ? "*" : ".", thisCPU->zFlag ? "*" : ".", thisCPU->cFlag ? "*" : "." );
-	} else {
-		printf(" pc   ac xr yr zr bp     sp  nvedizc\n");
-		printf("%04x  %02x %02x %02x %02x %02x    %02x%02x %s%s%s%s%s%s%s\n\n", pcReg, aReg, xReg, yReg, zReg, bReg, spReg >> 8, spReg & 0x00ff, thisCPU->nFlag ? "*" : ".", thisCPU->vFlag ? "*" : ".", thisCPU->eFlag ? "*" : ".", thisCPU->dFlag ? "*" : ".", thisCPU->iFlag ? "*" : ".", thisCPU->zFlag ? "*" : ".", thisCPU->cFlag ? "*" : "." );
-	}
+	printf(" pc   ac xr yr zr bp shsl  nvedizc\n");
+	printf("%04x  %02x %02x %02x %02x %02x %02x%02x  %s%s%s%s%s%s%s\n\n", pcReg, aReg, xReg, yReg, zReg, bReg, spReg >> 8, spReg & 0x00ff, thisCPU->nFlag ? "*" : ".", thisCPU->vFlag ? "*" : ".", thisCPU->eFlag ? "*" : ".", thisCPU->dFlag ? "*" : ".", thisCPU->iFlag ? "*" : ".", thisCPU->zFlag ? "*" : ".", thisCPU->cFlag ? "*" : "." );
 }
 
 void csg65ce02_dump_page(csg65ce02 *thisCPU, uint8_t pageNo) {

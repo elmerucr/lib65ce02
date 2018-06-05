@@ -45,16 +45,17 @@ int main() {
 	memory0[0xaaaa] = 0xaf;
 
 	// program
-	memory0[0xc000] = 0x38;		// sec
-	memory0[0xc001] = 0x18;		// clc
-	memory0[0xc002] = 0xa9;		// lda #$81 (-127)
-	memory0[0xc003] = 0x81;
-	memory0[0xc004] = 0x69;		// adc #$fe
-	memory0[0xc005] = 0xfe;
-	memory0[0xc006] = 0xf4;		// phw #$e432
-	memory0[0xc007] = 0x32;
-	memory0[0xc008] = 0xe4;
-	memory0[0xc009] = 0xfc;		// phw $ffff
+	memory0[0xc000] = 0x02;		// cle
+	memory0[0xc001] = 0xa9;		// lda #$34
+	memory0[0xc002] = 0x34;
+	memory0[0xc003] = 0x48;		// pha
+	memory0[0xc004] = 0x48;		// pha
+	memory0[0xc005] = 0x48;		// pha
+	memory0[0xc006] = 0xfe;
+	memory0[0xc007] = 0xf4;		// phw #$e432
+	memory0[0xc008] = 0x32;
+	memory0[0xc009] = 0xe4;
+	memory0[0xc00a] = 0xfc;		// phw $ffff
 	memory0[0xc00a] = 0xff;
 	memory0[0xc00b] = 0xff;
 	memory0[0xc00c] = 0x31;
@@ -169,7 +170,7 @@ int main() {
 			case 't' :
 				if(cpu0.eFlag) {			// stack page always $01
 					printf("e flag is set, stack in 6502 mode\n");
-					temp_byte = 0x01;
+					temp_byte = (cpu0.sp & 0xff00) >> 8;
 				} else {				//
 					printf("e flag is not set, stack in extended mode\n");
 					temp_byte = (cpu0.sp & 0xff00) >> 8;
