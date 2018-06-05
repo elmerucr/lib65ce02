@@ -85,9 +85,9 @@ const uint8_t modify_pc_per_instruction[256] = {
 };
 
 void csg65ce02_reset(csg65ce02 *thisCPU) {
-    //aReg = 0x00;
-    //xReg = 0x00;
-    //yReg = 0x00;
+    //aReg = 0x00;		// don't care
+    //xReg = 0x00;		// don't care
+    //yReg = 0x00;		// don't care
 	zReg = 0x00;					// is actively set to 0 to emulate 65c02 stz instructions store zero
 	bReg = 0x00;					// init to 0 for correct emulation of earlier 65xx cpus ("zero-page")
     spReg = 0x01fd;					// is this the correct value => yes (see pagetable ...)
@@ -103,7 +103,7 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 
     pcReg = csg65ce02_read_byte(0xfffc) | (csg65ce02_read_byte(0xfffd) << 8);
 
-	thisCPU->cycles_last_executed_instruction = 1;	// load a safe value after reset, so irq can not be ackn
+	thisCPU->cycles_last_executed_instruction = 1;	// safe value after reset, so irq can't be ackn
 }
 
 // stack operation push
@@ -121,12 +121,12 @@ inline void csg65ce02_push_byte(csg65ce02 *thisCPU, uint8_t byte) {
 
 // stack operation pull
 inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU) {
-	if( thisCPU->eFlag ) {											// 8 bit stack pointer
-		uint16_t temp_word = spReg & 0xff00;						// sph must keep same value
-		spReg++;													// increase the sp
-		spReg = (spReg & 0x00ff) | temp_word;						// correct it if it crossed a page border
-		return csg65ce02_read_byte((spReg & 0x00ff) | 0x0100);		// pull one byte and return it
-	} else {														// 16 bit stack pointer
+	if( thisCPU->eFlag ) {										// 8 bit stack pointer
+		uint16_t temp_word = spReg & 0xff00;					// sph must keep same value
+		spReg++;												// increase the sp
+		spReg = (spReg & 0x00ff) | temp_word;					// correct it if it crossed a page border
+		return csg65ce02_read_byte(spReg);						// pull one byte and return it
+	} else {													// 16 bit stack pointer
 		spReg++;
 		return csg65ce02_read_byte(spReg);
 	}
