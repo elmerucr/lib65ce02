@@ -573,6 +573,11 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 					pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
 				}
 				break;
+			case 0xf4 :								// phw immediate
+			case 0xfc :								// phw absolute
+				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_h));
+				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_l));
+				break;
             default :								// opcode not implemented
 				printf("error: opcode not implemented\n");
         }
