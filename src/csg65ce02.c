@@ -90,9 +90,8 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
     //yReg = 0x00;
 	zReg = 0x00;					// is actively set to 0 to emulate 65c02 stz instructions store zero
 	bReg = 0x00;					// init to 0 for correct emulation of earlier 65xx cpus ("zero-page")
-	spReg = 0x0201;
-    //spReg = 0x01fd;					// is this the correct value => yes (see pagetable ...)
-									// free to set this to another value manually
+    spReg = 0x01fd;					// is this the correct value => yes (see pagetable ...)
+									// if e=1 then wraps around same page, if e=0 wraps around memory
 
 	thisCPU->nFlag = 0x00;
 	thisCPU->vFlag = 0x00;
@@ -578,8 +577,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				break;
 			case 0xf4 :								// phw immediate
 			case 0xfc :								// phw absolute
-				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_h));	// CHECK!
-				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_l));	// CHECK!
+				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_l));
+				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_h));
 				break;
             default :								// opcode not implemented
 				printf("error: opcode not implemented\n");
