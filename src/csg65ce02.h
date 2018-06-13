@@ -65,7 +65,7 @@ extern const uint8_t modify_pc_per_instruction[];
 //	Reset procedure
 void csg65ce02_reset(csg65ce02 *thisCPU);
 
-//	Memory Operations
+//	Memory Operations as seen from the CPU
 uint8_t	csg65ce02_read_byte(uint16_t address);
 void	csg65ce02_write_byte(uint16_t address, uint8_t byte);
 
