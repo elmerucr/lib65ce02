@@ -7,8 +7,6 @@
 #include <stdlib.h>
 #include "csg65ce02_mmu.h"
 
-uint8_t *csg65ce02_memoryblock;
-
 void csg65ce02_mmu_init() {
 	csg65ce02_memoryblock = malloc(1024 * 1024 * sizeof(uint8_t));			// get 1mb of storage space
 	// fill memory it with alternating pattern
