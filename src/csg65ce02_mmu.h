@@ -12,7 +12,7 @@
 #ifndef CSG65CE02_MMU_H
 #define CSG65CE02_MMU_H
 
-uint8_t *csg65ce02_memoryblock;		// will be publically visible (for dma)
+uint8_t *csg65ce02_memoryblock;		// will be publically visible (for dma purposes)
 
 void csg65ce02_mmu_init();
 void csg65ce02_mmu_cleanup();
