@@ -15,6 +15,23 @@ void csg65ce02_mmu_init() {
 		// lower half gets 0xff, upper half gets 0x80
 		csg65ce02_memoryblock[i] = (i & 64) ? ((i & ((1024 * 1024) / 2)) ? 0xff : 0x80) : 0x00;
 	}
+
+	csg65ce02_memoryblock[0x00000] = 0x00;		// dummy value
+	csg65ce02_memoryblock[0x00001] = 0x01;
+	csg65ce02_memoryblock[0x00002] = 0x02;
+	csg65ce02_memoryblock[0x00003] = 0x03;
+	csg65ce02_memoryblock[0x00004] = 0x04;
+	csg65ce02_memoryblock[0x00005] = 0x05;
+	csg65ce02_memoryblock[0x00006] = 0x06;
+	csg65ce02_memoryblock[0x00007] = 0x07;
+	csg65ce02_memoryblock[0x00008] = 0x08;
+	csg65ce02_memoryblock[0x00009] = 0x09;
+	csg65ce02_memoryblock[0x0000a] = 0x0a;
+	csg65ce02_memoryblock[0x0000b] = 0x0b;
+	csg65ce02_memoryblock[0x0000c] = 0x0c;
+	csg65ce02_memoryblock[0x0000d] = 0x0d;
+	csg65ce02_memoryblock[0x0000e] = 0x0e;
+	csg65ce02_memoryblock[0x0000f] = 0x80;		// bit7=1 -> refers to ROM, bank 0
 }
 
 void csg65ce02_mmu_cleanup() {
