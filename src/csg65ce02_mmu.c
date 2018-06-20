@@ -39,5 +39,11 @@ void csg65ce02_mmu_cleanup() {
 }
 
 // memory access functions need to be implemented:
-// ...
-// ...
+uint8_t csg65ce02_read_byte(uint16_t address) {
+	return csg65ce02_memoryblock[(csg65ce02_memoryblock[address >> 12] << 12) | (address & 0x0fff)];
+}
+
+void csg65ce02_write_byte(uint16_t address, uint8_t byte) {
+	uint32_t phys_addr = (csg65ce02_memoryblock[address >> 12] << 12) | (address & 0x0fff);
+	if(!(phys_addr & 0x00080000)) csg65ce02_memoryblock[phys_addr] = byte;
+}

@@ -8,99 +8,35 @@
 #include <stdlib.h>
 #include "csg65ce02.h"
 #include "csg65ce02_dasm.h"
+#include "csg65ce02_mmu.h"
 
 #define TEXT_BUFFER_SIZE 64
 
-// prepare 64k memory
-uint8_t memory0[65536];
-
-// and define memory access functions
-inline uint8_t csg65ce02_read_byte(uint16_t address) {
-	return memory0[address];
-}
-
-inline void csg65ce02_write_byte(uint16_t address, uint8_t byte) {
-	memory0[address] = byte;
-}
-
 int main() {
-	// fill memory it with alternating pattern
-	for(int i=0; i<65536; i++) {
-		memory0[i] = (i & 64) ? 0xff : 0x00;
-	}
+	csg65ce02_mmu_init();		// first, initialize memory management unit and memory
 
 	// set nmi, reset & break vectors
-	memory0[0xfffa] = 0x00;		// nmi $2000
-	memory0[0xfffb] = 0x20;
-	memory0[0xfffc] = 0x00;		// reset $0400
-	memory0[0xfffd] = 0xc0;
-	memory0[0xfffe] = 0x00;		// brk $a900
-	memory0[0xffff] = 0xa9;
-
-	// 'interesting' data in bp
-	memory0[0x0000] = 0xaa;
-	memory0[0x0011] = 0xff;
-	memory0[0x001e] = 0x58;
-	memory0[0xaaa9] = 0xbe;
-	memory0[0xaaaa] = 0xaf;
+	csg65ce02_memoryblock[0x80ffa] = 0x00;		// nmi $2000
+	csg65ce02_memoryblock[0x80ffb] = 0x20;
+	csg65ce02_memoryblock[0x80ffc] = 0x00;		// reset $c000
+	csg65ce02_memoryblock[0x80ffd] = 0xc0;
+	csg65ce02_memoryblock[0x80ffe] = 0x00;		// brk $a900
+	csg65ce02_memoryblock[0x80fff] = 0xa9;
 
 	// program
-	memory0[0xc000] = 0x02;		// cle
-	memory0[0xc001] = 0xa9;		// lda #$34
-	memory0[0xc002] = 0x34;
-	memory0[0xc003] = 0x48;		// pha
-	memory0[0xc004] = 0x48;		// pha
-	memory0[0xc005] = 0x48;		// pha
-	memory0[0xc006] = 0xea;		// nop
-	memory0[0xc007] = 0xf4;		// phw #$e432
-	memory0[0xc008] = 0x32;
-	memory0[0xc009] = 0xe4;
-	memory0[0xc00a] = 0xfc;		// phw $ffff
-	memory0[0xc00a] = 0xff;
-	memory0[0xc00b] = 0xff;
-	memory0[0xc00c] = 0x31;
-	memory0[0xc00d] = 0xc0;
-	memory0[0xc00e] = 0xc8;
-	memory0[0xc00f] = 0xd9;
-	memory0[0xc010] = 0x31;
-	memory0[0xc011] = 0xc0;
-	memory0[0xc012] = 0x90;
-	memory0[0xc013] = 0x14;
-	memory0[0xc014] = 0xf0;
-	memory0[0xc015] = 0x12;
-	memory0[0xc016] = 0x4b;
-	memory0[0xc017] = 0xb9;
-	memory0[0xc018] = 0x31;
-	memory0[0xc019] = 0xc0;
-	memory0[0xc01a] = 0x88;
-	memory0[0xc01b] = 0x99;
-	memory0[0xc01c] = 0x31;
-	memory0[0xc01d] = 0xc0;
-	memory0[0xc01e] = 0x6b;
-	memory0[0xc01f] = 0xc8;
-	memory0[0xc020] = 0x99;
-	memory0[0xc021] = 0x31;
-	memory0[0xc022] = 0xc0;
-	memory0[0xc023] = 0xa9;
-	memory0[0xc024] = 0xff;
-	memory0[0xc025] = 0x8d;
-	memory0[0xc026] = 0x37;
-	memory0[0xc027] = 0xc0;
-	memory0[0xc028] = 0xca;
-	memory0[0xc029] = 0xd0;
-	memory0[0xc02a] = 0xe0;
-	memory0[0xc02b] = 0x2c;
-	memory0[0xc02c] = 0x37;
-	memory0[0xc02d] = 0xc0;
-	memory0[0xc02e] = 0x30;
-	memory0[0xc02f] = 0xd0;
-	memory0[0xc030] = 0xea;
-	memory0[0xc031] = 0x05;
-	memory0[0xc032] = 0x05;
-	memory0[0xc033] = 0x04;
-	memory0[0xc034] = 0x03;
-	memory0[0xc035] = 0x02;
-	memory0[0xc036] = 0x01;
+	csg65ce02_memoryblock[0x0c000] = 0x02;		// cle
+	csg65ce02_memoryblock[0x0c001] = 0xa9;		// lda #$34
+	csg65ce02_memoryblock[0x0c002] = 0x34;
+	csg65ce02_memoryblock[0x0c003] = 0x48;		// pha
+	csg65ce02_memoryblock[0x0c004] = 0x48;		// pha
+	csg65ce02_memoryblock[0x0c005] = 0x48;		// pha
+	csg65ce02_memoryblock[0x0c006] = 0xea;		// nop
+	csg65ce02_memoryblock[0x0c007] = 0xf4;		// phw #$e432
+	csg65ce02_memoryblock[0x0c008] = 0x32;
+	csg65ce02_memoryblock[0x0c009] = 0xe4;
+	csg65ce02_memoryblock[0x0c00a] = 0xfc;		// phw $ffff
+	csg65ce02_memoryblock[0x0c00a] = 0xff;
+	csg65ce02_memoryblock[0x0c00b] = 0xff;
 
 	printf("\nemulate_65ce02 (C)2018 by elmerucr v20180522.0\n");
 
@@ -112,7 +48,7 @@ int main() {
 	csg65ce02_reset(&cpu0);
 	csg65ce02_dump_status(&cpu0);
 	csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
-	printf("%s <--> %i cycle(s)\n", text_buffer, cycles_per_instruction[memory0[cpu0.pc]]);
+	printf("%s <--> %i cycle(s)\n", text_buffer, cycles_per_instruction[csg65ce02_memoryblock[cpu0.pc]]);
 	printf("\nType 'h' for help\n");
 
 	char prompt = '.';
@@ -153,7 +89,7 @@ int main() {
 				csg65ce02_execute(&cpu0,0);
 				csg65ce02_dump_status(&cpu0);
 				csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
-				printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[memory0[cpu0.pc]]);
+				printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_memoryblock[cpu0.pc]]);
 				break;
 			case 'r' :
 				printf("Resetting 65ce02\n");
@@ -165,7 +101,7 @@ int main() {
 			case 's' :
 				csg65ce02_dump_status(&cpu0);
 				csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
-				printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[memory0[cpu0.pc]]);
+				printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_memoryblock[cpu0.pc]]);
 				break;
 			case 't' :
 				if(cpu0.eFlag) {			// stack page always $01
