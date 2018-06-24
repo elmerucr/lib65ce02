@@ -7,16 +7,21 @@
 #include <stdlib.h>
 #include "csg65ce02_mmu.h"
 
+uint8_t csg65ce02_mmu_registers[16];	// internal mem registers of mmu
+									// will be memory addressable from 65ce02 cpu
+
 void csg65ce02_mmu_init() {
-	csg65ce02_memoryblock = malloc(1024 * 1024 * sizeof(uint8_t));			// get 1mb of storage space
-	// fill memory it with alternating pattern
+	csg65ce02_memoryblock = malloc(1024 * 1024 * sizeof(uint8_t));			// get 1mb of ram storage space
+	// fill memory it with alternating 0x00 and 0xff
 	for(int i=0; i<(1024*1024); i++) {
-		// fill blocks alternating with a number and zeroes
-		// lower half gets 0xff, upper half gets 0x80
-		csg65ce02_memoryblock[i] = (i & 64) ? ((i & ((1024 * 1024) / 2)) ? 0xff : 0x80) : 0x00;
+		csg65ce02_memoryblock[i] = (i & 64) ? 0xff : 0x00;
+	}
+	for(int i=0; i<16; i++) {
+		csg65ce02_mmu_registers[i] = i;
 	}
 
-	csg65ce02_memoryblock[0x00000] = 0x00;		// dummy value
+	// OBSOLETE --> needs removal, etc...
+	csg65ce02_memoryblock[0x00000] = 0x00;
 	csg65ce02_memoryblock[0x00001] = 0x01;
 	csg65ce02_memoryblock[0x00002] = 0x02;
 	csg65ce02_memoryblock[0x00003] = 0x03;
@@ -40,7 +45,12 @@ void csg65ce02_mmu_cleanup() {
 
 // memory access functions need to be implemented:
 uint8_t csg65ce02_read_byte(uint16_t address) {
-	return csg65ce02_memoryblock[(csg65ce02_memoryblock[address >> 12] << 12) | (address & 0x0fff)];
+	uint8_t result;
+	switch((address & 0xff00) >> 8) {
+		default :
+			result =  csg65ce02_memoryblock[(csg65ce02_memoryblock[address >> 12] << 12) | (address & 0x0fff)];
+	}
+	return result;
 }
 
 void csg65ce02_write_byte(uint16_t address, uint8_t byte) {
