@@ -43,7 +43,7 @@ void csg65ce02_mmu_cleanup() {
 	free(csg65ce02_memoryblock);
 }
 
-// memory access functions need to be implemented:
+// memory access functions implementation:
 uint8_t csg65ce02_read_byte(uint16_t address) {
 	uint8_t result;
 	switch((address & 0xff00) >> 8) {
