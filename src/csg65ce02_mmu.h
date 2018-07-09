@@ -14,8 +14,8 @@
 
 #include "csg65ce02.h"
 
-uint8_t *csg65ce02_memoryblock;		// will be publically visible (for dma purposes)
-									// should not be used directly by cpu
+uint8_t *csg65ce02_ram;		// will be publically visible (for dma purposes)
+							// should not be used directly by cpu
 
 void csg65ce02_mmu_init();
 void csg65ce02_mmu_cleanup();
