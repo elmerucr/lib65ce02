@@ -31,10 +31,11 @@ void csg65ce02_mmu_cleanup() {
 uint8_t csg65ce02_read_byte(uint16_t address) {
 	uint8_t result;
 	switch((address & 0xff00) >> 8) {
-		// case IO_MMU_PAGE :
-		// 	break;
+		case IO_MMU_PAGE :
+			result = csg65ce02_mmu_registers[address & 0x000f];
+			break;
 		default :
-			result =  csg65ce02_ram[(csg65ce02_mmu_registers[address >> 12] << 12) | (address & 0x0fff)];
+			result = csg65ce02_ram[(csg65ce02_mmu_registers[address >> 12] << 12) | (address & 0x0fff)];
 	}
 	return result;
 }

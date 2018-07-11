@@ -35,8 +35,11 @@ int main() {
 	csg65ce02_ram[0x0c008] = 0x32;
 	csg65ce02_ram[0x0c009] = 0xe4;
 	csg65ce02_ram[0x0c00a] = 0xfc;		// phw $ffff
-	csg65ce02_ram[0x0c00a] = 0xff;
 	csg65ce02_ram[0x0c00b] = 0xff;
+	csg65ce02_ram[0x0c00c] = 0xff;
+	csg65ce02_ram[0x0c00d] = 0xad;		// lda $020f
+	csg65ce02_ram[0x0c00e] = 0x0f;
+	csg65ce02_ram[0x0c00f] = 0x02;
 
 	printf("\nemulate_65ce02 (C)2018 by elmerucr v20180522.0\n");
 
