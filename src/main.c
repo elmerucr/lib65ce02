@@ -41,7 +41,7 @@ int main() {
 	csg65ce02_ram[0x0c00e] = 0x0f;
 	csg65ce02_ram[0x0c00f] = 0x02;
 
-	printf("\nemulate_65ce02 (C)2018 by elmerucr v20180522.0\n");
+	printf("\nemulate_65ce02 (C)2018 by elmerucr v20180711.0\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text text_buffer to print strings
 	csg65ce02 cpu0;
