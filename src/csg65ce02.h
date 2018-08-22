@@ -28,7 +28,6 @@ typedef struct {
 	uint8_t		cFlag;		// Carry
 
 	// other things to keep track of
-	//uint8_t		*ram;								// pointer to memory array
 	uint8_t		cycles_last_executed_instruction;	// necessary to check if an irq can be acknowl.
 
 } csg65ce02;
