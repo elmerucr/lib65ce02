@@ -9,16 +9,19 @@
 #include "defs.h"
 
 uint8_t csg65ce02_mmu_registers[16];	// internal mem registers of mmu
-									// will be memory addressable from 65ce02 cpu
+									    // will be memory addressable from 65ce02 cpu
 
 void csg65ce02_mmu_init() {
 	csg65ce02_ram = malloc(1024 * 1024 * sizeof(uint8_t));			// get 1mb of ram storage space
+                                                                    // that's 256 blocks of 4k
 	// fill ram with alternating 0x00's and 0xff's
-	for(int i=0; i<(1024*1024); i++) {
+	for(int i=0; i<(1024*1024*sizeof(uint8_t)); i++) {
 		csg65ce02_ram[i] = (i & 64) ? 0xff : 0x00;
 	}
-	for(int i=0; i<16; i++) {
-		csg65ce02_mmu_registers[i] = i;
+	for(int i=0; i<16; i++) {                   // 16 registers, each one for 4kb of addressable memory
+                                                // as seen from the csg65ce02 (64kb)
+		csg65ce02_mmu_registers[i] = i;         // each register contains an 8bit pointer to a 4kb block
+                                                // in 1mb of ram (as seen from the mmu)
 	}
 	csg65ce02_mmu_registers[0x0f] = 0x80;
 }
