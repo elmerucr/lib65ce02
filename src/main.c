@@ -41,7 +41,7 @@ int main() {
 	csg65ce02_ram[0xc00e] = 0x0f;
 	csg65ce02_ram[0xc00f] = 0x02;
 
-	printf("\nemulate_65ce02 (C)2018 by elmerucr v20180711.0\n");
+	printf("\nemulate_65ce02 (C)2018 by elmerucr v20180905.0\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text text_buffer to print strings
 	csg65ce02 cpu0;
@@ -108,12 +108,11 @@ int main() {
 				break;
 			case 't' :
 				if(cpu0.eFlag) {			// stack page always $01
-					printf("e flag is set, stack in 6502 mode\n");
-					temp_byte = (cpu0.sp & 0xff00) >> 8;
+					printf("e flag is set, stack is in 6502 mode\n");
 				} else {				//
-					printf("e flag is not set, stack in extended mode\n");
-					temp_byte = (cpu0.sp & 0xff00) >> 8;
+					printf("e flag is not set, stack is in extended mode\n");
 				}
+				temp_byte = (cpu0.sp & 0xff00) >> 8;
 				csg65ce02_dump_page(&cpu0,temp_byte);	// dump stack
 				break;
 			case 'x' :

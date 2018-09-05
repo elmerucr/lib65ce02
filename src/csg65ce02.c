@@ -66,7 +66,7 @@ const uint8_t cycles_per_instruction[256] = {
 };
 
 const uint8_t modify_pc_per_instruction[256] = {
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+	1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 	1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,
 	1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,
 	1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,
@@ -134,8 +134,9 @@ inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU) {
 
 unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 	uint8_t current_opcode;
-	uint16_t effective_address_l;
-	uint16_t effective_address_h;
+	uint16_t effective_address_l;		// low byte of the effective address, normally used
+	uint16_t effective_address_h;		// high byte address of the effective address
+										// don't know yet if this is necessary (maybe in case of word instr?)
 
 	// temporary storage possibility
 	uint16_t	temp_word;
@@ -143,7 +144,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 	uint8_t		temp_byte2;
 
 	unsigned int cycle_count = 0;
-	int running = 1;
+	//int running = 1;
 
 	do {
 		current_opcode = csg65ce02_read_byte(pcReg);		// fetch opcode at current pc
@@ -225,8 +226,29 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 		};
 
 		switch( current_opcode ) {
-			case 0x00 :								// brk instruction, still a fake handling routine
-				running = 0;
+			case 0x00 :								// brk instruction
+				// push high byte of the pc+2 on the stack (note rti will not increase pc on return)
+				csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));
+				// push low byte of the pc+2 on the stack (note rti will not increase pc on return)
+				csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
+				// push sr onto stack
+				temp_byte =	thisCPU->nFlag |
+							thisCPU->vFlag |
+							thisCPU->eFlag |
+							bFlagValue |
+							thisCPU->dFlag |
+							thisCPU->iFlag |
+							thisCPU->zFlag |
+							thisCPU->cFlag;
+				csg65ce02_push_byte(thisCPU, temp_byte);
+				// set interrupt disable flag
+				thisCPU->iFlag = iFlagValue;
+				// load pc vector for irq/brk
+				thisCPU->pc = csg65ce02_read_byte(0xfffe) | (csg65ce02_read_byte(0xffff) << 8);
+				// clear the decimal flag (it will be restored by the rti instruction)
+				thisCPU->dFlag = 0x00;
+				// Is this still necessary?
+				// running = 0;
 				break;
 			case 0x01 :								// ora (bp,x)
 			case 0x05 :								// ora bp
@@ -590,7 +612,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 		if(!modify_pc_per_instruction[current_opcode]) {
 			pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
 		}
-    } while( (cycle_count < noCycles) && running);
+    } while(cycle_count < noCycles);
+    //} while( (cycle_count < noCycles) && running);
 
     return cycle_count;
 }

@@ -21,7 +21,9 @@ typedef struct {
 	uint8_t		nFlag;		// Negative flag
 	uint8_t		vFlag;		// Overflow
 	uint8_t		eFlag;		// Extend flag (16bit composed of spl and sph), when set, only spl is used
-	//uint8_t		bFlag;		// Break - does NOT exist. At instruction, just save a bit in stack
+	//uint8_t		bFlag;	// Break - does exist as a permanent '1'
+							// doesn make sense to implement at this stage.
+							// At interrupt, just push the 'cause' in stack
 	uint8_t		dFlag;		// Decimal flag - please note the 65ce02 bug that's been found
 	uint8_t		iFlag;		// Interrupt
 	uint8_t 	zFlag;		// Zero

@@ -22,8 +22,8 @@
 #define nFlagValue       0x80	// Negative flag
 #define vFlagValue       0x40	// Overflow
 #define eFlagValue       0x20	// Extend flag (16bit, spl and sph togeth), when set, only spl is used
-#define bFlagValue       0x10	// Break - does NOT exist. At instruction, save bit value in stack
-#define dFlagValue       0x08	// Decimal flag - please note the 65ce02 bug that's been found
+#define bFlagValue       0x10	// Break - does NOT exist. At interrupt, save bit value in stack
+#define dFlagValue       0x08	// Decimal flag - please note the 65ce02 bug that's been found (yes, there is one)
 #define iFlagValue       0x04	// Interrupt
 #define zFlagValue       0x02	// Zero
 #define cFlagValue       0x01	// Carry
