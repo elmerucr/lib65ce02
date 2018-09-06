@@ -136,7 +136,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 	uint8_t current_opcode;
 	uint16_t effective_address_l;		// low byte of the effective address, normally used
 	uint16_t effective_address_h;		// high byte address of the effective address
-										// don't know yet if this is necessary (maybe in case of word instr?)
+										// used for IMMW and ABSW addressing modes
 
 	// temporary storage possibility
 	uint16_t	temp_word;
@@ -237,7 +237,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 							thisCPU->eFlag |
 							bFlagValue |
 							thisCPU->dFlag |
-							thisCPU->iFlag |
+							thisCPU->iFlag |        // yes, the i flag as it was during last instruction is pushed!
 							thisCPU->zFlag |
 							thisCPU->cFlag;
 				csg65ce02_push_byte(thisCPU, temp_byte);
@@ -247,8 +247,6 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				thisCPU->pc = csg65ce02_read_byte(0xfffe) | (csg65ce02_read_byte(0xffff) << 8);
 				// clear the decimal flag (it will be restored by the rti instruction)
 				thisCPU->dFlag = 0x00;
-				// Is this still necessary?
-				// running = 0;
 				break;
 			case 0x01 :								// ora (bp,x)
 			case 0x05 :								// ora bp
