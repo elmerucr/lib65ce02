@@ -97,7 +97,7 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 	thisCPU->vFlag = 0x00;
 	thisCPU->eFlag = eFlagValue;	// starts flagged (8 bit sp on page $01) for 6502 compatible behav.
 	thisCPU->dFlag = 0x00;			// must be zero after reset!
-	thisCPU->iFlag = 0x00;
+	thisCPU->iFlag = iFlagValue;	// starts flagged, to avoid irqs from happening - bootup code must 'cli'
 	thisCPU->zFlag = 0x00;
 	thisCPU->cFlag = 0x00;
 
