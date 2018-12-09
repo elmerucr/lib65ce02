@@ -22,7 +22,7 @@ typedef struct {
 	uint8_t		vFlag;		// Overflow
 	uint8_t		eFlag;		// Extend flag (16bit composed of spl and sph), when set, only spl is used
 	//uint8_t		bFlag;	// Break - does exist as a permanent '1'
-							// doesn make sense to implement at this stage.
+							// doesn't make sense to implement at this stage.
 							// At interrupt, just push the 'cause' in stack
 	uint8_t		dFlag;		// Decimal flag - please note the 65ce02 bug that's been found
 	uint8_t		iFlag;		// Interrupt
@@ -30,7 +30,7 @@ typedef struct {
 	uint8_t		cFlag;		// Carry
 
 	// other things to keep track of
-	uint8_t		cycles_last_executed_instruction;	// necessary to check if an irq can be acknowl.
+	uint8_t		cycles_last_executed_instruction;	// necessary to decide if an irq will be acknowledged
 
 } csg65ce02;
 
