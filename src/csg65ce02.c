@@ -132,7 +132,7 @@ inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU) {
 	}
 }
 
-unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
+unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	uint8_t current_opcode;
 	uint16_t effective_address_l;		// low byte of the effective address, normally used
 	uint16_t effective_address_h;		// high byte address of the effective address
@@ -143,8 +143,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 	uint8_t		temp_byte;
 	uint8_t		temp_byte2;
 
-	unsigned int cycle_count = 0;
-	//int running = 1;
+	thisCPU->cycle_count = 0;
 
 	do {
 		current_opcode = csg65ce02_read_byte(pcReg);		// fetch opcode at current pc
@@ -604,16 +603,15 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles) {
 				printf("error: opcode not implemented\n");
         }
 		thisCPU->cycles_last_executed_instruction = cycles_per_instruction[current_opcode];
-		cycle_count += thisCPU->cycles_last_executed_instruction;
+		thisCPU->cycle_count += thisCPU->cycles_last_executed_instruction;
 
 		// increase pc only if the instruction does not actively change the pc by itself
 		if(!modify_pc_per_instruction[current_opcode]) {
 			pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
 		}
-    } while(cycle_count < noCycles);
-    //} while( (cycle_count < noCycles) && running);
+    } while(thisCPU->cycle_count < no_cycles);
 
-    return cycle_count;
+    return thisCPU->cycle_count;
 }
 
 void csg65ce02_dump_status(csg65ce02 *thisCPU) {

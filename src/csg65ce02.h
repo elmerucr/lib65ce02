@@ -30,7 +30,8 @@ typedef struct {
 	uint8_t		cFlag;		// Carry
 
 	// other things to keep track of
-	uint8_t		cycles_last_executed_instruction;	// necessary to decide if an irq will be acknowledged
+	unsigned int	cycle_count;
+	uint8_t			cycles_last_executed_instruction;	// necessary to decide if an irq will be acknowledged
 
 } csg65ce02;
 
@@ -75,17 +76,17 @@ void	csg65ce02_push_byte(csg65ce02 *thisCPU, uint8_t byte);
 uint8_t	csg65ce02_pull_byte(csg65ce02 *thisCPU);
 
 //	Execute a number of cycles on the virtual cpu.
-//	When called with 0 cycles, it executes only one instruction
+//	When called with 0 cycles, only one instruction will be executed
 //	The function returns the number of cycles taken by the cpu
 //
 //	Note: when an instr takes only 1 cycle, a pending irq will not be acknowledged, it has to wait
 //	--> How to implement this? --> just store the duration of the currently executed instruction
-unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles);
+unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles);
 
 // returns 1 on success, else 0
 unsigned int csg65ce02_trigger_irq(csg65ce02 *thisCPU);
 
-// always successful
+// must always be acknowledged
 void csg65ce02_trigger_nmi(csg65ce02 *thisCPU);
 
 //	It currently uses printf to dump the status of the cpu
