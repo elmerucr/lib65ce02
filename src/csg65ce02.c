@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include "csg65ce02.h"
 #include "csg65ce02_macros.h"
 
@@ -83,6 +84,20 @@ const uint8_t modify_pc_per_instruction[256] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
 	1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1
 };
+
+// Init procedure
+void csg65ce02_init(csg65ce02 *thisCPU) {
+	thisCPU->breakpoints_active = false;
+	thisCPU->breakpoint_array = (uint8_t *)malloc(65536 * sizeof(uint8_t));
+	for(int i=0; i<65536; i++) {
+		thisCPU->breakpoint_array[i] = 0x00;
+	}
+}
+
+// Cleanup procedure
+void csg65ce02_cleanup(csg65ce02 *thisCPU) {
+	free(thisCPU->breakpoint_array);
+}
 
 void csg65ce02_reset(csg65ce02 *thisCPU) {
     //aReg = 0x00;		// don't care

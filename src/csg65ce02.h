@@ -7,6 +7,7 @@
 #define CSG65CE02_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct {
 	uint16_t	pc;			// program counter
@@ -29,10 +30,13 @@ typedef struct {
 	uint8_t 	zFlag;		// Zero
 	uint8_t		cFlag;		// Carry
 
-	// other things to keep track of
+	// other things to keep track of and need to be accessible from 'outside'
 	unsigned int	cycle_count;
 	uint8_t			cycles_last_executed_instruction;	// necessary to decide if an irq will be acknowledged
 
+	// info and pointer to a 64k array with breakpoint information
+	bool		breakpoints_active;
+	uint8_t		*breakpoint_array;
 } csg65ce02;
 
 enum addressing_modes {
@@ -64,7 +68,13 @@ extern const uint8_t bytes_per_instruction[];
 extern const uint8_t cycles_per_instruction[];
 extern const uint8_t modify_pc_per_instruction[];
 
-//	Reset procedure
+// Init procedure, disables breakpoints and creates dynamically internal breakpoint array of 64k
+void csg65ce02_init(csg65ce02 *thisCPU);
+
+// Cleanup procedure, frees memory allocated by init function
+void csg65ce02_cleanup(csg65ce02 *thisCPU);
+
+// Reset procedure
 void csg65ce02_reset(csg65ce02 *thisCPU);
 
 //	Memory Operations as seen from the CPU
