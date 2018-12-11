@@ -89,6 +89,8 @@ unsigned int csg65ce02_trigger_irq(csg65ce02 *thisCPU);
 // must always be acknowledged
 void csg65ce02_trigger_nmi(csg65ce02 *thisCPU);
 
+
+//	Help functions for convenience
 //	It currently uses printf to dump the status of the cpu
 void csg65ce02_dump_status(csg65ce02 *thisCPU);
 
