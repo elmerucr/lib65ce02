@@ -121,6 +121,23 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 	thisCPU->cycles_last_executed_instruction = 1;	// safe value after reset, so irq can't be ackn
 }
 
+// Breakpoint functions
+void csg65ce02_enable_breakpoints(csg65ce02 *thisCPU) {
+	thisCPU->breakpoints_active = true;
+}
+
+void csg65ce02_disable_breakpoints(csg65ce02 *thisCPU) {
+	thisCPU->breakpoints_active = false;
+}
+
+void csg65ce02_add_breakpoint(csg65ce02 *thisCPU, uint16_t address) {
+	thisCPU->breakpoint_array[address] = 0x01;
+}
+
+void csg65ce02_remove_breakpoint(csg65ce02 *thisCPU, uint16_t address) {
+	thisCPU->breakpoint_array[address] = 0x00;
+}
+
 // stack operation push
 inline void csg65ce02_push_byte(csg65ce02 *thisCPU, uint8_t byte) {
 	if( thisCPU->eFlag ) {							// 8 bit stack pointer
@@ -153,7 +170,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	uint16_t effective_address_h;		// high byte address of the effective address
 										// used for IMMW and ABSW addressing modes
 
-	// temporary storage possibility
+	// temporary storage possibilities
 	uint16_t	temp_word;
 	uint8_t		temp_byte;
 	uint8_t		temp_byte2;
@@ -306,7 +323,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 			case 0xd7 :								// smb 0,bp
 			case 0xe7 :								// smb 0,bp
 			case 0xf7 :								// smb 0,bp
-				// Which bit from bp addres is going to be tested? Store it in temp_byte
+				// Which bit from bp address is going to be tested? Store it in temp_byte
 				temp_byte = (current_opcode & 0x70) >> 4;
 				if(current_opcode & 0x80) {				// set memory bit
 					csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) | (0x01 << temp_byte) );

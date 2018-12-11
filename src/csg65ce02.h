@@ -77,6 +77,12 @@ void csg65ce02_cleanup(csg65ce02 *thisCPU);
 // Reset procedure
 void csg65ce02_reset(csg65ce02 *thisCPU);
 
+// Breakpoint functions
+void csg65ce02_enable_breakpoints(csg65ce02 *thisCPU);
+void csg65ce02_disable_breakpoints(csg65ce02 *thisCPU);
+void csg65ce02_add_breakpoint(csg65ce02 *thisCPU, uint16_t address);
+void csg65ce02_remove_breakpoint(csg65ce02 *thisCPU, uint16_t address);
+
 //	Memory Operations as seen from the CPU
 uint8_t	csg65ce02_read_byte(uint16_t address);
 void	csg65ce02_write_byte(uint16_t address, uint8_t byte);
