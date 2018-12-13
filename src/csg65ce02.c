@@ -88,9 +88,9 @@ const uint8_t modify_pc_per_instruction[256] = {
 // Init procedure
 void csg65ce02_init(csg65ce02 *thisCPU) {
 	thisCPU->breakpoints_active = false;
-	thisCPU->breakpoint_array = (uint8_t *)malloc(65536 * sizeof(uint8_t));
+	thisCPU->breakpoint_array = (bool *)malloc(65536 * sizeof(bool));
 	for(int i=0; i<65536; i++) {
-		thisCPU->breakpoint_array[i] = 0x00;
+		thisCPU->breakpoint_array[i] = false;
 	}
 }
 
@@ -131,11 +131,11 @@ void csg65ce02_disable_breakpoints(csg65ce02 *thisCPU) {
 }
 
 void csg65ce02_add_breakpoint(csg65ce02 *thisCPU, uint16_t address) {
-	thisCPU->breakpoint_array[address] = 0x01;
+	thisCPU->breakpoint_array[address] = true;
 }
 
 void csg65ce02_remove_breakpoint(csg65ce02 *thisCPU, uint16_t address) {
-	thisCPU->breakpoint_array[address] = 0x00;
+	thisCPU->breakpoint_array[address] = false;
 }
 
 // stack operation push
@@ -164,6 +164,7 @@ inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU) {
 	}
 }
 
+//	Main function, execute a number of cycles on the virtual cpu
 unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	uint8_t current_opcode;
 	uint16_t effective_address_l;		// low byte of the effective address, normally used

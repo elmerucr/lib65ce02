@@ -36,7 +36,7 @@ typedef struct {
 
 	// info and pointer to a 64k array with breakpoint information
 	bool		breakpoints_active;
-	uint8_t		*breakpoint_array;
+	bool		*breakpoint_array;
 } csg65ce02;
 
 enum addressing_modes {
