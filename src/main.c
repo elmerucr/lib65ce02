@@ -41,10 +41,14 @@ int main() {
 	csg65ce02_ram[0xc00e] = 0x0f;
 	csg65ce02_ram[0xc00f] = 0x02;
 
-	printf("\nemulate_65ce02 (C)2018 by elmerucr v20180905.0\n");
+	printf("\nemulate_65ce02 (C)2018 by elmerucr v20181214.0\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text text_buffer to print strings
+
 	csg65ce02 cpu0;
+	csg65ce02_init(&cpu0);
+	csg65ce02_enable_breakpoints(&cpu0);
+	csg65ce02_add_breakpoint(&cpu0,0xc004);
 
 	// reset and print message
 	printf("\nResetting 65ce02\n");
@@ -89,7 +93,7 @@ int main() {
 				printf("x - Exit emulate_65ce02\n");
 				break;
 			case 'n' :
-				csg65ce02_execute(&cpu0,0);
+				printf("%i\n",csg65ce02_execute(&cpu0,8));
 				csg65ce02_dump_status(&cpu0);
 				csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 				printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
@@ -122,6 +126,8 @@ int main() {
 				printf("Error: unknown command '%c'\n",input_command);
 		}
 	} while(running);
+
+	free(cpu0.breakpoint_array);
 
 	printf("\nbye\n\n");
 

@@ -118,7 +118,7 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 
     pcReg = csg65ce02_read_byte(0xfffc) | (csg65ce02_read_byte(0xfffd) << 8);
 
-	thisCPU->cycles_last_executed_instruction = 1;	// safe value after reset, so irq can't be ackn
+	thisCPU->cycles_last_executed_instruction = 1;	// safe value after reset, so irq can't be acknowledged
 }
 
 // Breakpoint functions
@@ -642,8 +642,9 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 		if(!modify_pc_per_instruction[current_opcode]) {
 			pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
 		}
-    } while(thisCPU->cycle_count < no_cycles);
-
+	// check for 3 conditions to continue running: (1) enough cycles?, (2) no breakpoint? and (3) breakpoints activated?
+    } while(	(thisCPU->cycle_count < no_cycles) &&
+				!((thisCPU->breakpoint_array[pcReg] == true) && thisCPU->breakpoints_active) );
     return thisCPU->cycle_count;
 }
 
