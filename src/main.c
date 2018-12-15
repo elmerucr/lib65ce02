@@ -27,7 +27,7 @@ int main() {
 	csg65ce02_ram[0xfffe] = 0x00;		// brk $a900
 	csg65ce02_ram[0xffff] = 0xa9;
 
-	// program
+	// program in memory
 	csg65ce02_ram[0xc000] = 0x02;		// cle
 	csg65ce02_ram[0xc001] = 0xa9;		// lda #$34
 	csg65ce02_ram[0xc002] = 0x34;
@@ -125,6 +125,7 @@ int main() {
 		}
 	} while( !finished );
 
+	free(input_string);
 	free(cpu0.breakpoint_array);
 
 	printf("\nbye\n\n");
