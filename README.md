@@ -14,7 +14,7 @@ cmake ..
 make
 ./emulate_65ce02
 ````
-The source code in ````main.c```` will be quite self-explanatory.
+The source code in ````main.c```` is quite self-explanatory.
 ## MIT License
 Copyright (c) 2018 elmerucr
 
