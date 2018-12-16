@@ -61,7 +61,7 @@ int main() {
 	csg65ce02_dump_status(&cpu0);
 	csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 	printf("%s <--> %i cycle(s)\n", text_buffer, cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
-	printf("\nType 'h' for help\n");
+	printf("\nType 'h' for help\n\n");
 
 	char prompt = '.';
 
@@ -73,12 +73,13 @@ int main() {
 	bool finished = false;
 
 	do {
-		putchar('\n');
 		putchar(prompt);
 		input_string = read_line();
 		token = strtok( input_string, " ");
 
-		if( strcmp(token, "b") == 0 ) {
+		if( token == NULL ) {
+			// do nothing, just catch the empty token, as strcmp with NULL pointer results in segfault
+		} else if( strcmp(token, "b") == 0 ) {
 			printf("basepage");
 			csg65ce02_dump_page(&cpu0,cpu0.b);
 		} else if( strcmp(token, "d") == 0) {
