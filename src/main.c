@@ -14,6 +14,7 @@
 
 #define TEXT_BUFFER_SIZE 64
 
+// This function reads a line from stdin, and returns a pointer to a string. The caller needs to free allocated memory
 char *read_line(void);
 
 int main() {
@@ -45,9 +46,9 @@ int main() {
 	csg65ce02_ram[0xc00e] = 0x0f;
 	csg65ce02_ram[0xc00f] = 0x02;
 
-	printf("\nemulate_65ce02 (C)2018 by elmerucr v20181215.0\n");
+	printf("\nemulate_65ce02 (C)2018 by elmerucr v20181216.0\n");
 
-	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text text_buffer to print strings
+	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text_buffer to print strings
 
 	csg65ce02 cpu0;
 	csg65ce02_init(&cpu0);
@@ -77,10 +78,10 @@ int main() {
 		input_string = read_line();
 		token = strtok( input_string, " ");
 
-		if( strcmp(input_string, "b") == 0 ) {
+		if( strcmp(token, "b") == 0 ) {
 			printf("basepage");
 			csg65ce02_dump_page(&cpu0,cpu0.b);
-		} else if( strcmp(input_string, "d") == 0) {
+		} else if( strcmp(token, "d") == 0) {
 			uint16_t start = cpu0.pc;
 			for(int i=0; i<8; i++) {
 				start += csg65ce02_dasm(start, text_buffer, TEXT_BUFFER_SIZE);
