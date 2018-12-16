@@ -52,10 +52,10 @@ int main() {
 
 	csg65ce02 cpu0;
 	csg65ce02_init(&cpu0);
-	csg65ce02_enable_breakpoints(&cpu0);
-	csg65ce02_add_breakpoint(&cpu0,0xc004);
+	csg65ce02_enable_breakpoints(&cpu0);		// in this setting, breakpoints are always enabled
+	csg65ce02_add_breakpoint(&cpu0,0xc004);		// add one breakpoint for the time being...
 
-	// reset and print message
+	// reset system and print welcome message
 	printf("\nResetting 65ce02\n");
 	csg65ce02_reset(&cpu0);
 	csg65ce02_dump_status(&cpu0);
@@ -64,12 +64,9 @@ int main() {
 	printf("\nType 'h' for help\n\n");
 
 	char prompt = '.';
-
 	uint8_t temp_byte;
-
 	char *input_string;
 	char *token;
-
 	bool finished = false;
 
 	do {
@@ -89,14 +86,15 @@ int main() {
 				puts(text_buffer);
 			}
 		} else if( strcmp(token, "h") == 0) {
-			printf("b - Dump basepage\n");
-			printf("d - Disassemble next 8 instructions\n");
-			printf("h - Prints this help message\n");
-			printf("n - Execute next instruction\n");
-			printf("r - Reset 65ce02\n");
-			printf("s - Prints processor status\n");
-			printf("t - Dump current stack page\n");
-			printf("x - Exit emulate_65ce02\n");
+			printf("\nPossible commands:\n");
+			printf("b    - Dump basepage\n");
+			printf("d    - Disassemble next 8 instructions\n");
+			printf("h    - Prints this help message\n");
+			printf("n    - Execute next instruction\n");
+			printf("r    - Reset 65ce02\n");
+			printf("s    - Prints processor status\n");
+			printf("t    - Dump current stack page\n");
+			printf("x    - Exit emulate_65ce02\n\n");
 		} else if( strcmp(token, "n") == 0) {
 			printf("%i\n",csg65ce02_execute(&cpu0,8));
 			csg65ce02_dump_status(&cpu0);
