@@ -61,7 +61,7 @@ int main() {
 	csg65ce02_dump_status(&cpu0);
 	csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 	printf("%s <--> %i cycle(s)\n", text_buffer, cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
-	printf("\nType 'h' for help\n\n");
+	printf("\nType 'help' for a list of possible commands\n\n");
 
 	char prompt = '.';
 	uint8_t temp_byte;
@@ -77,6 +77,13 @@ int main() {
 		if( token == NULL ) {
 			// do nothing, just catch the empty token, as strcmp with NULL pointer results in segfault
 		} else if( strcmp(token, "b") == 0 ) {
+			printf("Current breakpoints:\n");
+			for(int i=0; i<65536; i++) {
+				if( cpu0.breakpoint_array[i] == true ) {
+					printf("$%04x\n",i);
+				}
+			}
+		} else if( strcmp(token, "base") == 0 ) {
 			printf("basepage");
 			csg65ce02_dump_page(&cpu0,cpu0.b);
 		} else if( strcmp(token, "d") == 0) {
@@ -85,31 +92,32 @@ int main() {
 				start += csg65ce02_dasm(start, text_buffer, TEXT_BUFFER_SIZE);
 				puts(text_buffer);
 			}
-		} else if( strcmp(token, "h") == 0) {
-			printf("\nPossible commands:\n");
-			printf("b    - Dump basepage\n");
-			printf("d    - Disassemble next 8 instructions\n");
-			printf("h    - Prints this help message\n");
-			printf("n    - Execute next instruction\n");
-			printf("r    - Reset 65ce02\n");
-			printf("s    - Prints processor status\n");
-			printf("t    - Dump current stack page\n");
-			printf("x    - Exit emulate_65ce02\n\n");
+		} else if( strcmp(token, "help") == 0) {
+			printf("\nCommands:\n");
+			printf("b - Breakpoint related commands\n");
+			printf("d - Disassemble next 8 instructions\n");
+			printf("n - Execute next instruction\n");
+			printf("r - Prints processor registers\n");
+			printf("t - Dump current stack page\n");
+			printf("x - Exit emulate_65ce02\n\n");
+			printf("base   - Dump current basepage\n");
+			printf("help   - Prints this help message\n");
+			printf("reset  - Reset 65ce02\n\n");
 		} else if( strcmp(token, "n") == 0) {
 			printf("%i\n",csg65ce02_execute(&cpu0,8));
 			csg65ce02_dump_status(&cpu0);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
 		} else if( strcmp(token, "r") == 0 ) {
+			csg65ce02_dump_status(&cpu0);
+			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
+			printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
+		} else if( strcmp(token, "reset") == 0 ) {
 			printf("Resetting 65ce02\n");
 			csg65ce02_reset(&cpu0);
 			csg65ce02_dump_status(&cpu0);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			puts(text_buffer);
-		} else if( strcmp(token, "s") == 0 ) {
-			csg65ce02_dump_status(&cpu0);
-			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
-			printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
 		} else if( strcmp(token, "t") == 0 ) {
 			if(cpu0.eFlag) {			// stack page always $01
 				printf("e flag is set, stack is in 6502 mode\n");
