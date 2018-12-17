@@ -54,6 +54,7 @@ int main() {
 	csg65ce02_init(&cpu0);
 	csg65ce02_enable_breakpoints(&cpu0);		// in this setting, breakpoints are always enabled
 	csg65ce02_add_breakpoint(&cpu0,0xc004);		// add one breakpoint for the time being...
+	csg65ce02_add_breakpoint(&cpu0,0x8009);		// add another
 
 	// reset system and print welcome message
 	printf("\nResetting 65ce02\n");
@@ -66,59 +67,76 @@ int main() {
 	char prompt = '.';
 	uint8_t temp_byte;
 	char *input_string;
-	char *token;
+	char *token0, *token1, *token2, *token3;
 	bool finished = false;
 
 	do {
 		putchar(prompt);
 		input_string = read_line();
-		token = strtok( input_string, " ");
+		token0 = strtok( input_string, " ");
+		token1 = strtok( NULL, " ");
+		token2 = strtok( NULL, " ");
+		token3 = strtok( NULL, " ");
 
-		if( token == NULL ) {
+		if( token0 == NULL ) {
 			// do nothing, just catch the empty token, as strcmp with NULL pointer results in segfault
-		} else if( strcmp(token, "b") == 0 ) {
-			printf("Current breakpoints:\n");
-			for(int i=0; i<65536; i++) {
-				if( cpu0.breakpoint_array[i] == true ) {
-					printf("$%04x\n",i);
+		} else if( strcmp(token0, "b") == 0 ) {
+			if( token1 == NULL ) {
+				printf("breakpoints\n");
+				for(int i=0; i<65536; i++) {
+					if( cpu0.breakpoint_array[i] == true ) {
+						printf("$%04x\n",i);
+					}
 				}
+			} else if ( strcmp(token1, "+") == 0 ) {
+				if( token2 == NULL ) {
+					printf("Error: missing address\n");
+				} else {
+				int i;
+					sscanf( token2, "%04x", &i);
+					printf("adding breakpoint, I read %i\n", i);
+				}
+			} else if ( strcmp(token1, "-") == 0 ) {
+				printf("removing breakpoint\n");
+			} else {
+				printf("Error: unknown option '%s'\n",token1);
 			}
-		} else if( strcmp(token, "base") == 0 ) {
+		} else if( strcmp(token0, "base") == 0 ) {
 			printf("basepage");
 			csg65ce02_dump_page(&cpu0,cpu0.b);
-		} else if( strcmp(token, "d") == 0) {
+		} else if( strcmp(token0, "d") == 0) {
 			uint16_t start = cpu0.pc;
 			for(int i=0; i<8; i++) {
 				start += csg65ce02_dasm(start, text_buffer, TEXT_BUFFER_SIZE);
 				puts(text_buffer);
 			}
-		} else if( strcmp(token, "help") == 0) {
+		} else if( strcmp(token0, "help") == 0) {
 			printf("\nCommands:\n");
 			printf("b - Breakpoint related commands\n");
 			printf("d - Disassemble next 8 instructions\n");
 			printf("n - Execute next instruction\n");
-			printf("r - Prints processor registers\n");
+			printf("r - Dump processor registers\n");
 			printf("t - Dump current stack page\n");
 			printf("x - Exit emulate_65ce02\n\n");
 			printf("base   - Dump current basepage\n");
 			printf("help   - Prints this help message\n");
 			printf("reset  - Reset 65ce02\n\n");
-		} else if( strcmp(token, "n") == 0) {
+		} else if( strcmp(token0, "n") == 0) {
 			printf("%i\n",csg65ce02_execute(&cpu0,8));
 			csg65ce02_dump_status(&cpu0);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
-		} else if( strcmp(token, "r") == 0 ) {
+		} else if( strcmp(token0, "r") == 0 ) {
 			csg65ce02_dump_status(&cpu0);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
-		} else if( strcmp(token, "reset") == 0 ) {
+		} else if( strcmp(token0, "reset") == 0 ) {
 			printf("Resetting 65ce02\n");
 			csg65ce02_reset(&cpu0);
 			csg65ce02_dump_status(&cpu0);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			puts(text_buffer);
-		} else if( strcmp(token, "t") == 0 ) {
+		} else if( strcmp(token0, "t") == 0 ) {
 			if(cpu0.eFlag) {			// stack page always $01
 				printf("e flag is set, stack is in 6502 mode\n");
 			} else {				//
@@ -126,7 +144,7 @@ int main() {
 			}
 			temp_byte = (cpu0.sp & 0xff00) >> 8;
 			csg65ce02_dump_page(&cpu0,temp_byte);	// dump stack
-		} else if( strcmp(token, "x") == 0 ) {
+		} else if( strcmp(token0, "x") == 0 ) {
 			finished = true;
 		} else {
 			printf("Error: unknown command '%s'\n", input_string);
