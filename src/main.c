@@ -62,6 +62,7 @@ int main() {
 	csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 	printf("%s\n", text_buffer);
 
+	// prepare command line interface
 	char prompt = '.';
 	uint8_t temp_byte;
 	char *input_string;
@@ -161,7 +162,7 @@ int main() {
 	free(input_string);
 	free(cpu0.breakpoint_array);
 
-	printf("\nbye\n\n");
+	printf("bye\n\n");
 
 	return 0;
 }
