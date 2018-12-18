@@ -47,22 +47,21 @@ int main() {
 	csg65ce02_ram[0xc00f] = 0x02;
 
 	printf("\nemulate_65ce02 (C)2018 by elmerucr v20181216.0\n");
+	printf("type 'help' for a list of possible commands\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text_buffer to print strings
 
 	csg65ce02 cpu0;
 	csg65ce02_init(&cpu0);
 	csg65ce02_enable_breakpoints(&cpu0);		// in this setting, breakpoints are always enabled
-	csg65ce02_add_breakpoint(&cpu0,0xc004);		// add one breakpoint for the time being...
-	csg65ce02_add_breakpoint(&cpu0,0x8009);		// add another
 
 	// reset system and print welcome message
-	printf("\nResetting 65ce02\n");
+	printf("resetting 65ce02...\n\n");
 	csg65ce02_reset(&cpu0);
 	csg65ce02_dump_status(&cpu0);
 	csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 	printf("%s <--> %i cycle(s)\n", text_buffer, cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
-	printf("\nType 'help' for a list of possible commands\n\n");
+
 
 	char prompt = '.';
 	uint8_t temp_byte;
@@ -82,11 +81,15 @@ int main() {
 			// do nothing, just catch the empty token, as strcmp with NULL pointer results in segfault
 		} else if( strcmp(token0, "b") == 0 ) {
 			if( token1 == NULL ) {
-				printf("breakpoints\n");
+				bool was_breakpoint = false;
 				for(int i=0; i<65536; i++) {
 					if( cpu0.breakpoint_array[i] == true ) {
 						printf("$%04x\n",i);
+						was_breakpoint = true;
 					}
+				}
+				if( !was_breakpoint) {
+					printf("no breakpoints defined\n");
 				}
 			} else {
 				unsigned int i;
@@ -119,11 +122,21 @@ int main() {
 			printf("base   - Dump current basepage\n");
 			printf("help   - Prints this help message\n");
 			printf("reset  - Reset 65ce02\n\n");
+			//printf("Type 'help <command name>' for more detailed info\n\n");
 		} else if( strcmp(token0, "n") == 0) {
-			printf("%i\n",csg65ce02_execute(&cpu0,8));
-			csg65ce02_dump_status(&cpu0);
-			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
-			printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
+			if( token1 == NULL ) {
+				printf("%i\n",csg65ce02_execute(&cpu0,0));
+				csg65ce02_dump_status(&cpu0);
+				csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
+				printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
+			} else {
+				unsigned int n;
+				sscanf( token1, "%i", &n);
+				printf("%i\n",csg65ce02_execute(&cpu0,n));
+				csg65ce02_dump_status(&cpu0);
+				csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
+				printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
+			}
 		} else if( strcmp(token0, "r") == 0 ) {
 			csg65ce02_dump_status(&cpu0);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
