@@ -88,18 +88,16 @@ int main() {
 						printf("$%04x\n",i);
 					}
 				}
-			} else if ( strcmp(token1, "+") == 0 ) {
-				if( token2 == NULL ) {
-					printf("Error: missing address\n");
-				} else {
-				int i;
-					sscanf( token2, "%04x", &i);
-					printf("adding breakpoint, I read %i\n", i);
-				}
-			} else if ( strcmp(token1, "-") == 0 ) {
-				printf("removing breakpoint\n");
 			} else {
-				printf("Error: unknown option '%s'\n",token1);
+				unsigned int i;
+				sscanf( token1, "%04x", &i);
+				if(cpu0.breakpoint_array[i]) {
+					printf("removing breakpoint at $%04x\n", i);
+					cpu0.breakpoint_array[i] = false;
+				} else {
+					printf("adding breakpoint at $%04x\n", i);
+					cpu0.breakpoint_array[i] = true;
+				}
 			}
 		} else if( strcmp(token0, "base") == 0 ) {
 			printf("basepage");
