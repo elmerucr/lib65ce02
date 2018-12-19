@@ -111,15 +111,17 @@ int main() {
 				start += csg65ce02_dasm(start, text_buffer, TEXT_BUFFER_SIZE);
 				puts(text_buffer);
 			}
+		} else if( strcmp(token0, "exit") == 0 ) {
+			finished = true;
 		} else if( strcmp(token0, "help") == 0) {
 			printf("\nCommands:\n");
 			printf("b - Breakpoint related commands\n");
 			printf("d - Disassemble next 8 instructions\n");
 			printf("n - Execute next instruction\n");
 			printf("r - Dump processor registers\n");
-			printf("t - Dump current stack page\n");
-			printf("x - Exit emulate_65ce02\n\n");
+			printf("t - Dump current stack page\n\n");
 			printf("base   - Dump current basepage\n");
+			printf("exit   - Exit emulate_65ce02\n");
 			printf("help   - Prints this help message\n");
 			printf("reset  - Reset 65ce02\n\n");
 			//printf("Type 'help <command name>' for more detailed info\n\n");
@@ -130,7 +132,7 @@ int main() {
 			} else {
 				sscanf( token1, "%i", &n);
 			}
-			printf("cpu ran %i cycles\n\n",csg65ce02_execute(&cpu0,0));
+			printf("cpu ran %i cycles\n\n",csg65ce02_execute(&cpu0,n));
 			csg65ce02_dump_status(&cpu0);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			printf("%s\n",text_buffer);
@@ -152,8 +154,6 @@ int main() {
 			}
 			temp_byte = (cpu0.sp & 0xff00) >> 8;
 			csg65ce02_dump_page(&cpu0,temp_byte);	// dump stack
-		} else if( strcmp(token0, "x") == 0 ) {
-			finished = true;
 		} else {
 			printf("Error: unknown command '%s'\n", input_string);
 		}
