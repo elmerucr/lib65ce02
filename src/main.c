@@ -137,7 +137,7 @@ int main() {
 		} else if( strcmp(token0, "r") == 0 ) {
 			csg65ce02_dump_status(&cpu0);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
-			printf("%s <--> %i cycle(s)\n",text_buffer,cycles_per_instruction[csg65ce02_ram[cpu0.pc]]);
+			printf("%s\n",text_buffer);
 		} else if( strcmp(token0, "reset") == 0 ) {
 			printf("Resetting 65ce02\n");
 			csg65ce02_reset(&cpu0);
