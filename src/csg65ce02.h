@@ -31,6 +31,7 @@ typedef struct {
 	uint8_t		cFlag;		// Carry
 
 	// other things to keep track of and need to be accessible from 'outside'
+	uint16_t		instruction_counter;
 	unsigned int	cycle_count;
 	uint8_t			cycles_last_executed_instruction;	// necessary to decide if an irq will be acknowledged
 

@@ -177,6 +177,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	uint8_t		temp_byte2;
 
 	thisCPU->cycle_count = 0;
+	thisCPU->instruction_counter = 0;
 
 	do {
 		current_opcode = csg65ce02_read_byte(pcReg);		// fetch opcode at current pc
@@ -642,6 +643,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 		if(!modify_pc_per_instruction[current_opcode]) {
 			pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
 		}
+		thisCPU->instruction_counter++;
 	// check for 3 conditions to continue running: (1) enough cycles?, (2) no breakpoint? and (3) breakpoints activated?
     } while(	(thisCPU->cycle_count < no_cycles) &&
 				!((thisCPU->breakpoint_array[pcReg] == true) && thisCPU->breakpoints_active) );
