@@ -119,6 +119,7 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
     pcReg = csg65ce02_read_byte(0xfffc) | (csg65ce02_read_byte(0xfffd) << 8);
 
 	thisCPU->cycles_last_executed_instruction = 1;	// safe value after reset, so irq can't be acknowledged
+	thisCPU->remaining_cycles = 0;
 }
 
 // Breakpoint functions
@@ -177,6 +178,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	uint8_t		temp_byte2;
 
 	thisCPU->cycle_count = 0;
+	thisCPU->remaining_cycles = no_cycles;
 
 	do {
 		current_opcode = csg65ce02_read_byte(pcReg);		// fetch opcode at current pc
@@ -637,6 +639,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
         }
 		thisCPU->cycles_last_executed_instruction = cycles_per_instruction[current_opcode];
 		thisCPU->cycle_count += thisCPU->cycles_last_executed_instruction;
+		thisCPU->remaining_cycles -= thisCPU->cycles_last_executed_instruction;
 
 		// increase pc only if the instruction does not actively change the pc by itself
 		if(!modify_pc_per_instruction[current_opcode]) {

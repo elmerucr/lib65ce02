@@ -132,7 +132,8 @@ int main() {
 			} else {
 				sscanf( token1, "%i", &n);
 			}
-			printf("cpu ran %i cycles\n\n",csg65ce02_execute(&cpu0,n));
+			int i = csg65ce02_execute(&cpu0,n);
+			printf("cpu ran %i cycles, %i cycles remaining\n\n",i,cpu0.remaining_cycles);
 			csg65ce02_dump_status(&cpu0);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			printf("%s\n",text_buffer);

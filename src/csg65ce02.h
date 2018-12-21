@@ -33,6 +33,7 @@ typedef struct {
 	// other things to keep track of and need to be accessible from 'outside'
 	unsigned int	cycle_count;
 	uint8_t			cycles_last_executed_instruction;	// necessary to decide if an irq will be acknowledged
+	unsigned int	remaining_cycles;
 
 	// info and pointer to a 64k array with breakpoint information
 	bool		breakpoints_active;
