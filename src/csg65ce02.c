@@ -178,11 +178,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	uint8_t		temp_byte2;
 
 	thisCPU->cycle_count = 0;
-<<<<<<< HEAD
 	thisCPU->instruction_counter = 0;
-=======
-	thisCPU->remaining_cycles = no_cycles;
->>>>>>> 7c2d5fd1ad61c73f915b798860d6d0ef59de7252
 
 	do {
 		current_opcode = csg65ce02_read_byte(pcReg);		// fetch opcode at current pc
