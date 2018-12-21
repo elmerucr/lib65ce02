@@ -30,11 +30,12 @@ typedef struct {
 	uint8_t 	zFlag;		// Zero
 	uint8_t		cFlag;		// Carry
 
-	// other things to keep track of and need to be accessible from 'outside'
+	// for housekeeping of the execute function, taking care of re-entrance capabilities
+	unsigned int	cycles_asked_for;					// direct copy of no_cycles
+	unsigned int	cycle_count;						// sums up total number of cycles consumed by execute function
+	int				remaining_cycles;
 	uint16_t		instruction_counter;
-	unsigned int	cycle_count;
 	uint8_t			cycles_last_executed_instruction;	// necessary to decide if an irq will be acknowledged
-	unsigned int	remaining_cycles;
 
 	// info and pointer to a 64k array with breakpoint information
 	bool		breakpoints_active;
