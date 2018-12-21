@@ -132,7 +132,12 @@ int main() {
 			} else {
 				sscanf( token1, "%i", &n);
 			}
+<<<<<<< HEAD
 			printf("cpu ran %i cycles for %i instruction(s)\n\n",csg65ce02_execute(&cpu0,n),cpu0.instruction_counter);
+=======
+			int i = csg65ce02_execute(&cpu0,n);
+			printf("cpu ran %i cycles, %i cycles remaining\n\n",i,n-i);
+>>>>>>> 7c2d5fd1ad61c73f915b798860d6d0ef59de7252
 			csg65ce02_dump_status(&cpu0);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			printf("%s\n",text_buffer);
