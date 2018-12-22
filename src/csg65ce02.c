@@ -641,7 +641,6 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
         }
 		thisCPU->cycles_last_executed_instruction = cycles_per_instruction[current_opcode];
 		thisCPU->cycle_count += thisCPU->cycles_last_executed_instruction;
-		thisCPU->remaining_cycles -= thisCPU->cycles_last_executed_instruction;
 
 		// increase pc only if the instruction does not actively change the pc by itself
 		if(!modify_pc_per_instruction[current_opcode]) {
@@ -651,6 +650,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	// check for 3 conditions to continue running: (1) enough cycles?, (2) no breakpoint? and (3) breakpoints activated?
     } while(	(thisCPU->cycle_count < no_cycles) &&
 				!((thisCPU->breakpoint_array[pcReg] == true) && thisCPU->breakpoints_active) );
+
+	thisCPU->remaining_cycles = thisCPU->cycles_asked_for - thisCPU->cycle_count;
     return thisCPU->cycle_count;
 }
 
