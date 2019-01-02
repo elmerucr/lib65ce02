@@ -50,6 +50,7 @@ int main() {
 	printf("type 'help' for a list of possible commands\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text_buffer to print strings
+	char large_text_buffer[2048];		// allocate more storage for print functions
 
 	csg65ce02 cpu0;
 	csg65ce02_init(&cpu0);
@@ -58,7 +59,8 @@ int main() {
 	// reset system and print welcome message
 	printf("resetting 65ce02...\n\n");
 	csg65ce02_reset(&cpu0);
-	csg65ce02_dump_status(&cpu0);
+	csg65ce02_dump_status(&cpu0, large_text_buffer);
+	printf("%s", large_text_buffer);
 	csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 	printf("%s\n", text_buffer);
 
@@ -134,17 +136,20 @@ int main() {
 			}
 			int i = csg65ce02_execute(&cpu0,n);
 			printf("cpu ran %i cycles of %i demanded for %i instr, saldo is %i cycles\n\n",i,n,cpu0.instruction_counter,cpu0.remaining_cycles);
-			csg65ce02_dump_status(&cpu0);
+			csg65ce02_dump_status(&cpu0, large_text_buffer);
+			printf("%s", large_text_buffer);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			printf("%s\n",text_buffer);
 		} else if( strcmp(token0, "r") == 0 ) {
-			csg65ce02_dump_status(&cpu0);
+			csg65ce02_dump_status(&cpu0, large_text_buffer);
+			printf("%s", large_text_buffer);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			printf("%s\n",text_buffer);
 		} else if( strcmp(token0, "reset") == 0 ) {
 			printf("Resetting 65ce02\n");
 			csg65ce02_reset(&cpu0);
-			csg65ce02_dump_status(&cpu0);
+			csg65ce02_dump_status(&cpu0, large_text_buffer);
+			printf("%s", large_text_buffer);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			puts(text_buffer);
 		} else if( strcmp(token0, "t") == 0 ) {
