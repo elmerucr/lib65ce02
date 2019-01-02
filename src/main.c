@@ -50,7 +50,7 @@ int main() {
 	printf("type 'help' for a list of possible commands\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text_buffer to print strings
-	char large_text_buffer[2048];		// allocate more storage for print functions
+	char large_text_buffer[256];		// allocate more storage for print functions
 
 	csg65ce02 cpu0;
 	csg65ce02_init(&cpu0);
