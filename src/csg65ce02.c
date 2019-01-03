@@ -112,13 +112,14 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 	thisCPU->vFlag = 0x00;
 	thisCPU->eFlag = eFlagValue;	// starts flagged (8 bit sp on page $01) for 6502 compatible behav.
 	thisCPU->dFlag = 0x00;			// must be zero after reset!
-	thisCPU->iFlag = iFlagValue;	// starts flagged, to avoid irqs from happening - bootup code must 'cli'
+	thisCPU->iFlag = iFlagValue;	// starts flagged, to avoid irqs from happening - bootup code must 'cli' after setup
 	thisCPU->zFlag = 0x00;
 	thisCPU->cFlag = 0x00;
 
     pcReg = csg65ce02_read_byte(0xfffc) | (csg65ce02_read_byte(0xfffd) << 8);
 
 	thisCPU->cycles_last_executed_instruction = 1;	// safe value after reset, so irq can't be acknowledged
+													// this is useful for setting up an extended stack (cle, see)
 	thisCPU->remaining_cycles = 0;
 }
 

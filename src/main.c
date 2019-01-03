@@ -83,14 +83,14 @@ int main() {
 			// do nothing, just catch the empty token, as strcmp with NULL pointer results in segfault
 		} else if( strcmp(token0, "b") == 0 ) {
 			if( token1 == NULL ) {
-				bool was_breakpoint = false;
+				bool breakpoints_present = false;
 				for(int i=0; i<65536; i++) {
 					if( cpu0.breakpoint_array[i] == true ) {
 						printf("$%04x\n",i);
-						was_breakpoint = true;
+						breakpoints_present = true;
 					}
 				}
-				if( !was_breakpoint) {
+				if( !breakpoints_present) {
 					printf("no breakpoints defined\n");
 				}
 			} else {
