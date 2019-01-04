@@ -120,7 +120,6 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 
 	thisCPU->cycles_last_executed_instruction = 1;	// safe value after reset, so irq can't be acknowledged
 													// this is useful for setting up an extended stack (cle, see)
-	thisCPU->remaining_cycles = 0;
 }
 
 // Breakpoint functions
@@ -178,10 +177,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	uint8_t		temp_byte;
 	uint8_t		temp_byte2;
 
-	thisCPU->cycles_asked_for = no_cycles;
 	thisCPU->cycle_count = 0;
 	thisCPU->instruction_counter = 0;
-	thisCPU->remaining_cycles = no_cycles;
 
 	do {
 		current_opcode = csg65ce02_read_byte(pcReg);		// fetch opcode at current pc
@@ -652,7 +649,6 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
     } while(	(thisCPU->cycle_count < no_cycles) &&
 				!((thisCPU->breakpoint_array[pcReg] == true) && thisCPU->breakpoints_active) );
 
-	thisCPU->remaining_cycles = thisCPU->cycles_asked_for - thisCPU->cycle_count;
     return thisCPU->cycle_count;
 }
 

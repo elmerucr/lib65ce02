@@ -35,9 +35,7 @@ typedef struct {
 	bool		*breakpoint_array;
 
 	// for housekeeping of the execute function, taking care of re-entrance capabilities
-	unsigned int	cycles_asked_for;					// direct copy of no_cycles, so it can read afterwards
 	unsigned int	cycle_count;						// sums up total number of cycles consumed by execute function
-	int				remaining_cycles;					// subtracts cycle_count from cycles_asked_for
 	uint16_t		instruction_counter;
 	uint8_t			cycles_last_executed_instruction;	// necessary to decide if an irq will be acknowledged
 } csg65ce02;
