@@ -135,7 +135,7 @@ int main() {
 				sscanf( token1, "%i", &n);
 			}
 			int i = csg65ce02_execute(&cpu0,n);
-			printf("cpu ran %i cycles of %i demanded for %i instr, saldo is %i cycles\n\n",i,n,cpu0.instruction_counter,cpu0.remaining_cycles);
+			printf("cpu ran %i cycles of %i demanded for %i instruction(s)\n\n",i,n,cpu0.instruction_counter);
 			csg65ce02_dump_status(&cpu0, large_text_buffer);
 			printf("%s\n\n", large_text_buffer);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);

@@ -110,7 +110,6 @@ void csg65ce02_trigger_nmi(csg65ce02 *thisCPU);
 //	Help functions for convenience
 //	It currently uses printf to dump the status of the cpu
 void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string);
-
 void csg65ce02_dump_page(csg65ce02 *thisCPU, uint8_t pageNo);
 
 #endif
