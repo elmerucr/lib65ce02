@@ -84,7 +84,7 @@ uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length) {
 		case BP_IND_Y :		// (bp),y
 		case BP_IND_Z :		// (bp),z
 		case D_SP_IND_Y :	// (d,sp),y
-			snprintf(buffer,length,",%04x %02x %02x     %s%s%02x%s",
+			snprintf(buffer,length,",%04x %02x %02x    %s%s%02x%s",
 				address,
 				opcode,
 				operand_byte0,
@@ -100,7 +100,7 @@ uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length) {
 		case ABS_X_IND :	// (abs,x)
 		case IMMW :			// immw
 		case ABSW :			// absw
-			snprintf(buffer,length,",%04x %02x %02x %02x  %s%s%02x%02x%s",
+			snprintf(buffer,length,",%04x %02x %02x %02x %s%s%02x%02x%s",
 				address,
 				opcode,
 				operand_byte0,
@@ -113,7 +113,7 @@ uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length) {
 			break;
 		case ACCUM :		// accum
 		case IMPLIED :		// implied
-			snprintf(buffer,length,",%04x %02x        %s%s%s",
+			snprintf(buffer,length,",%04x %02x       %s%s%s",
 				address,
 				opcode,
 				mnemonics[mnemonic_index],
@@ -122,7 +122,7 @@ uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length) {
 			break;
 		case REL : {		// rel
 			uint16_t result = (operand_byte0 & 0x80) ? 0xff00 | operand_byte0 : 0x0000 | operand_byte0;
-			snprintf(buffer,length,",%04x %02x %02x     %s%s%04x%s",
+			snprintf(buffer,length,",%04x %02x %02x    %s%s%04x%s",
 				address,
 				opcode,
 				operand_byte0,
@@ -134,7 +134,7 @@ uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length) {
 			break;
 		case WREL : {		// wrel
 			uint16_t result = operand_byte0 | (operand_byte1 << 8);
-			snprintf(buffer,length,",%04x %02x %02x %02x  %s%s%04x%s",
+			snprintf(buffer,length,",%04x %02x %02x %02x %s%s%04x%s",
 				address,
 				opcode,
 				operand_byte0,
@@ -147,7 +147,7 @@ uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length) {
 			break;
 		case BPREL : {		// bprel (bbr* and bbs* instructions)
 			uint16_t result = (operand_byte1 & 0x80) ? 0xff00 | operand_byte1 : 0x0000 | operand_byte1;
-			snprintf(buffer,length,",%04x %02x %02x %02x  %s%s%02x%s%04x",
+			snprintf(buffer,length,",%04x %02x %02x %02x %s%s%02x%s%04x",
 				address,
 				opcode,
 				operand_byte0,
