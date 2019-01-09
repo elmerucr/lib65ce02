@@ -653,7 +653,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 }
 
 void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string) {
-	snprintf(temp_string, 256, " pc   ac xr yr zr bp shsl  nvedizc\n%04x  %02x %02x %02x %02x %02x %02x%02x  %s%s%s%s%s%s%s", pcReg, aReg, xReg, yReg, zReg, bReg, spReg >> 8, spReg & 0x00ff, thisCPU->nFlag ? "*" : ".", thisCPU->vFlag ? "*" : ".", thisCPU->eFlag ? "*" : ".", thisCPU->dFlag ? "*" : ".", thisCPU->iFlag ? "*" : ".", thisCPU->zFlag ? "*" : ".", thisCPU->cFlag ? "*" : "." );
+	snprintf(temp_string, 256, " pc  ac xr yr zr bp shsl nvedizc\n%04x %02x %02x %02x %02x %02x %02x%02x %s%s%s%s%s%s%s", pcReg, aReg, xReg, yReg, zReg, bReg, spReg >> 8, spReg & 0x00ff, thisCPU->nFlag ? "*" : ".", thisCPU->vFlag ? "*" : ".", thisCPU->eFlag ? "*" : ".", thisCPU->dFlag ? "*" : ".", thisCPU->iFlag ? "*" : ".", thisCPU->zFlag ? "*" : ".", thisCPU->cFlag ? "*" : "." );
 }
 
 void csg65ce02_dump_page(csg65ce02 *thisCPU, uint8_t pageNo) {
