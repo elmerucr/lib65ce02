@@ -139,16 +139,17 @@ void csg65ce02_remove_breakpoint(csg65ce02 *thisCPU, uint16_t address) {
 	thisCPU->breakpoint_array[address] = false;
 }
 
-// stack operation push
+// stack operation push (stack always points to the current available position)
 inline void csg65ce02_push_byte(csg65ce02 *thisCPU, uint8_t byte) {
 	if( thisCPU->eFlag ) {							// 8 bit stack pointer
-		csg65ce02_write_byte(spReg, byte);
-		uint16_t temp_word = spReg & 0xff00;
-		spReg--;
-		spReg = (spReg & 0x00ff) | temp_word;
-	} else {										// 16 bit stack pointer
-		csg65ce02_write_byte(spReg, byte);
-		spReg--;
+		csg65ce02_write_byte(spReg, byte);			// store the byte
+		uint16_t temp_word = spReg & 0xff00;		// keep track of current msb of 8 bit stack pointer
+		spReg--;									// lower the stack pointer by one
+		spReg = (spReg & 0x00ff) | temp_word;		// make sure msb keeps it old value
+
+	} else {										// 16 bit stack pointer, much simpler!
+		csg65ce02_write_byte(spReg, byte);			// store the byte
+		spReg--;									// lower the stack pointer by one
 	}
 }
 
@@ -159,7 +160,7 @@ inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU) {
 		spReg++;												// increase the sp
 		spReg = (spReg & 0x00ff) | temp_word;					// correct it if it crossed a page border
 		return csg65ce02_read_byte(spReg);						// pull one byte and return it
-	} else {													// 16 bit stack pointer
+	} else {													// 16 bit stack pointer, again much simpler
 		spReg++;
 		return csg65ce02_read_byte(spReg);
 	}
