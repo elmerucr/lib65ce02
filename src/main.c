@@ -28,6 +28,27 @@ int main() {
 	csg65ce02_ram[0xfffe] = 0x00;		// brk $a900
 	csg65ce02_ram[0xffff] = 0xa9;
 
+	// irq routine
+	csg65ce02_ram[0xa900] = 0x48;		// pha, save processor state
+	csg65ce02_ram[0xa901] = 0xda;		// phx
+	csg65ce02_ram[0xa902] = 0x5a;		// phy
+	csg65ce02_ram[0xa903] = 0xdb;		// phz
+	csg65ce02_ram[0xa904] = 0xba;		// tsx, load lsb of sp into x
+	csg65ce02_ram[0xa905] = 0x0b;		// tsy, load msb of sp into y
+	csg65ce02_ram[0xa906] = 0x86;		// stx $f0
+	csg65ce02_ram[0xa907] = 0xf0;
+	csg65ce02_ram[0xa908] = 0x84;		// sty $f1
+	csg65ce02_ram[0xa909] = 0xf1;
+	csg65ce02_ram[0xa90a] = 0xa0;		// ldy #$06
+	csg65ce02_ram[0xa90b] = 0x06;
+	csg65ce02_ram[0xa90c] = 0xb1;		// lda ($f0),y    NOT WORKING???????
+	csg65ce02_ram[0xa90d] = 0xf0;
+
+	// maybe better use the stack pointer relative addressing mode!!!
+
+
+	csg65ce02_ram[0xa90e] = 0x40;		// rti
+
 	// program in memory
 	csg65ce02_ram[0xc000] = 0x58;		// cli
 	csg65ce02_ram[0xc001] = 0x02;		// cle
@@ -46,6 +67,9 @@ int main() {
 	csg65ce02_ram[0xc00e] = 0xad;		// lda $020f
 	csg65ce02_ram[0xc00f] = 0x0f;
 	csg65ce02_ram[0xc010] = 0x02;
+	csg65ce02_ram[0xc011] = 0x00;		// brk #$01 (with signature byte)
+	csg65ce02_ram[0xc012] = 0x01;
+
 
 	printf("\nemulate_65ce02 (C)2018 by elmerucr v20181218.0\n");
 	printf("type 'help' for a list of possible commands\n");

@@ -19,7 +19,7 @@ const int addressing_mode_per_instruction[256] = {
 	IMPLIED,BP_X_IND,IMPLIED,WREL,BP,BP,BP,BP,IMPLIED,IMM,ACCUM,IMPLIED,ABS_IND,ABS,ABS,BPREL,
 	REL,BP_IND_Y,BP_IND_Z,WREL,BP_X,BP_X,BP_X,BP,IMPLIED,ABS_Y,IMPLIED,IMPLIED,ABS_X_IND,ABS_X,ABS_X,BPREL,
 	REL,BP_X_IND,D_SP_IND_Y,WREL,BP,BP,BP,BP,IMPLIED,IMM,IMPLIED,ABS_X,ABS,ABS,ABS,BPREL,
-	REL,BP_IND_Y,BP_IND_Z,WREL,BP_X,BP_X,BP_Y,BP,IMPLIED,ABS_Y,IMPLIED,ABS_X,ABS,ABS_X,ABS_X,BPREL,
+	REL,BP_IND_Y,BP_IND_Z,WREL,BP_X,BP_X,BP_Y,BP,IMPLIED,ABS_Y,IMPLIED,ABS_Y,ABS,ABS_X,ABS_X,BPREL,
 	IMM,BP_X_IND,IMM,IMM,BP,BP,BP,BP,IMPLIED,IMM,IMPLIED,ABS,ABS,ABS,ABS,BPREL,
 	REL,BP_IND_Y,BP_IND_Z,WREL,BP_X,BP_X,BP_Y,BP,IMPLIED,ABS_Y,IMPLIED,ABS_X,ABS_X,ABS_X,ABS_Y,BPREL,
 	IMM,BP_X_IND,IMM,BP,BP,BP,BP,BP,IMPLIED,IMM,IMPLIED,ABS,ABS,ABS,ABS,BPREL,
@@ -270,7 +270,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 				temp_byte =	thisCPU->nFlag |
 							thisCPU->vFlag |
 							thisCPU->eFlag |
-							bFlagValue |
+							bFlagValue |			// NOTE: In case of irq or nmi, this needs to be 0!!!!  FLAGGED!!!!!!!!
 							thisCPU->dFlag |
 							thisCPU->iFlag |        // yes, the i flag as it was during last instruction is pushed!
 							thisCPU->zFlag |
@@ -278,9 +278,12 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 				csg65ce02_push_byte(thisCPU, temp_byte);
 				// set interrupt disable flag
 				thisCPU->iFlag = iFlagValue;
+
 				// load pc vector for irq/brk
 				thisCPU->pc = csg65ce02_read_byte(0xfffe) | (csg65ce02_read_byte(0xffff) << 8);
-				// clear the decimal flag (it will be restored by the rti instruction)
+
+				// clear the decimal flag (it will be restored by the rti instruction) (Eyes, p338)
+				// note: in older versions of the cpu (nmos) this didn't happen, resulting in difficult to find bugs
 				thisCPU->dFlag = 0x00;
 				break;
 			case 0x01 :								// ora (bp,x)
@@ -423,6 +426,20 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 				aReg--;
 				setStatusForNZ(aReg);
 				break;
+			case 0x40 :								// rti
+				temp_byte = csg65ce02_pull_byte(thisCPU);
+				thisCPU->nFlag = temp_byte & nFlagValue;
+				thisCPU->vFlag = temp_byte & vFlagValue;
+				thisCPU->eFlag = temp_byte & eFlagValue;
+						// no b flag to set of course...
+				thisCPU->dFlag = temp_byte & dFlagValue;
+				thisCPU->iFlag = temp_byte & iFlagValue;
+				thisCPU->zFlag = temp_byte & zFlagValue;
+				thisCPU->cFlag = temp_byte & cFlagValue;
+				// restore the program counter
+				pcReg = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
+				// note: rti doesn't need a correction of pc afterwards (unlike rts)
+				break;
 			case 0x48 :								// pha
 				csg65ce02_push_byte(thisCPU, aReg);
 				break;
@@ -437,6 +454,9 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 				break;
 			case 0x58 :								// cli
 				thisCPU->iFlag = 0x00;
+				break;
+			case 0x5a :								// phy
+				csg65ce02_push_byte(thisCPU, yReg);
 				break;
 			case 0x5b :								// tab
 				bReg = aReg;
@@ -491,6 +511,13 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 			case 0x94 :								// sty bp,x
 				csg65ce02_write_byte(effective_address_l, yReg);
 				break;
+			case 0x86 :								// stx bp
+			case 0x8e :								// stx absolute
+			case 0x96 :								// stx bp,y
+			case 0x9b :								// stx absolute,y
+				csg65ce02_write_byte(effective_address_l, aReg);
+				break;
+
 			case 0x88 :								// dey
 				yReg--;
 				setStatusForNZ(yReg);
@@ -610,6 +637,12 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 				} else {						// not equal, take relative jump
 					pcReg = effective_address_l;
 				}
+				break;
+			case 0xda :								// phx
+				csg65ce02_push_byte(thisCPU, xReg);
+				break;
+			case 0xdb :								// phz
+				csg65ce02_push_byte(thisCPU, zReg);
 				break;
 			case 0xe0 :								// cpx immediate
 			case 0xe4 :								// cpx bp
