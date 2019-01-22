@@ -286,11 +286,11 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 			case 0x05 :								// ora bp
 			case 0x09 :								// ora immediate
 			case 0x0d :								// ora abs
-			case 0x11 :								// (bp),y
-			case 0x12 :								// (bp),z
-			case 0x15 :								// bp,x
-			case 0x19 :								// abs,y
-			case 0x1d :								// abs,x
+			case 0x11 :								// ora (bp),y
+			case 0x12 :								// ora (bp),z
+			case 0x15 :								// ora bp,x
+			case 0x19 :								// ora abs,y
+			case 0x1d :								// ora abs,x
 				aReg = aReg | (csg65ce02_read_byte(effective_address_l));
 				setStatusForNZ(aReg);
 				break;
@@ -433,6 +433,9 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 			case 0x6c :								// jmp (abs)
 			case 0x7c :								// jmp (abs,x)
 				pcReg = effective_address_l;
+				break;
+			case 0x58 :								// cli
+				thisCPU->iFlag = 0x00;
 				break;
 			case 0x5b :								// tab
 				bReg = aReg;
