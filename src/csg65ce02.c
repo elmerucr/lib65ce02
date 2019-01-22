@@ -472,6 +472,9 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 				aReg = zReg;
 				setStatusForNZ(aReg);
 				break;
+			case 0x78 :								// sei
+				thisCPU->iFlag = iFlagValue;
+				break;
 			case 0x80 :								// bra rel
 			case 0x83 :								// bra wrel
 				pcReg = effective_address_l;
