@@ -104,19 +104,19 @@ void csg65ce02_cleanup(csg65ce02 *thisCPU) {
 }
 
 void csg65ce02_reset(csg65ce02 *thisCPU) {
-    //aReg = 0x00;		// don't care
-    //xReg = 0x00;		// don't care
-    //yReg = 0x00;		// don't care
-	zReg = 0x00;					// is actively set to 0 to emulate 65c02 stz instructions store zero
-	bReg = 0x00;					// init to 0 for correct emulation of earlier 65xx cpus ("zero-page")
-    spReg = 0x01fd;					// is this the correct value => yes (see pagetable ...)
-									// if e=1 then wraps around same page, if e=0 wraps around memory
+    //aReg = 0x00;			// don't care
+    //xReg = 0x00;			// don't care
+    //yReg = 0x00;			// don't care
+	zReg = 0x00;			// is actively set to 0 to emulate 65c02 stz instructions store zero
+	bReg = 0x00;			// init to 0 for correct emulation of earlier 65xx cpus ("zero-page")
+    spReg = 0x01fd;			// is this the correct value => yes (see pagetable ...)
+							// if e=1 then wraps around same page, if e=0 wraps around memory
 
 	thisCPU->nFlag = 0x00;
 	thisCPU->vFlag = 0x00;
-	thisCPU->eFlag = eFlagValue;	// starts flagged (8 bit sp on page $01) for 6502 compatible behav.
+	thisCPU->eFlag = eFlagValue;	// starts flagged (8 bit sp on page $01) for 6502 compatible behaviour
 	thisCPU->dFlag = 0x00;			// must be zero after reset!
-	thisCPU->iFlag = iFlagValue;	// starts flagged, to avoid irqs from happening - bootup code must 'cli' after setup
+	thisCPU->iFlag = iFlagValue;	// starts flagged, to avoid irq's from happening - bootup code must 'cli' after setup
 	thisCPU->zFlag = 0x00;
 	thisCPU->cFlag = 0x00;
 
