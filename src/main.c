@@ -50,12 +50,12 @@ int main() {
 	// do your interrupt handling code here
 
 	// restore registers
-	//csg65ce02_ram[0xa90e] = 0x00;		// plz
-	// ply
-	// plx
-	// pla
+	csg65ce02_ram[0xa90e] = 0xfb;		// plz
+	csg65ce02_ram[0xa90f] = 0x7a;		// ply
+	csg65ce02_ram[0xa910] = 0xfa;		// plx
+	csg65ce02_ram[0xa911] = 0x68;		// pla
 
-	csg65ce02_ram[0xa90e] = 0x40;		// rti
+	csg65ce02_ram[0xa912] = 0x40;		// rti
 
 	// program in memory
 	csg65ce02_ram[0xc000] = 0x58;		// cli
@@ -75,7 +75,7 @@ int main() {
 	csg65ce02_ram[0xc00e] = 0xad;		// lda $020f
 	csg65ce02_ram[0xc00f] = 0x0f;
 	csg65ce02_ram[0xc010] = 0x02;
-	csg65ce02_ram[0xc011] = 0x00;		// brk #$01 (with signature byte)
+	csg65ce02_ram[0xc011] = 0x00;		// brk #$01 (with signature byte #$01)
 	csg65ce02_ram[0xc012] = 0x01;
 
 

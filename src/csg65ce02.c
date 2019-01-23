@@ -11,7 +11,7 @@
 
 // library internal function
 void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t opcode, uint16_t *eal, uint16_t *eah);
-void csg65ce02_handle_opcode(csg65ce02 *thisCPU);
+void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode);
 
 const int addressing_mode_per_instruction[256] = {
 	IMPLIED,BP_X_IND,IMPLIED,IMPLIED,BP,BP,BP,BP,IMPLIED,IMM,ACCUM,IMPLIED,ABS,ABS,ABS,BPREL,
@@ -189,6 +189,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 		current_opcode = csg65ce02_read_byte(pcReg);
 		// calc effective address with inline function
 		csg65ce02_calculate_effective_address(thisCPU, current_opcode, &effective_address_l, &effective_address_h);
+
+		csg65ce02_handle_opcode(thisCPU, current_opcode);
 
 		switch( current_opcode ) {
 			case 0x00 :								// brk instruction
@@ -419,12 +421,20 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 			case 0x64 :								// stz bp
 				csg65ce02_write_byte(effective_address_l, zReg);
 				break;
+			case 0x68 :								// pla
+				aReg = csg65ce02_pull_byte(thisCPU);
+				setStatusForNZ(aReg);
+				break;
 			case 0x6b :								// tza
 				aReg = zReg;
 				setStatusForNZ(aReg);
 				break;
 			case 0x78 :								// sei
 				thisCPU->iFlag = iFlagValue;
+				break;
+			case 0x7a :								// ply
+				yReg = csg65ce02_pull_byte(thisCPU);
+				setStatusForNZ(yReg);
 				break;
 			case 0x80 :								// bra rel
 			case 0x83 :								// bra wrel
@@ -599,6 +609,14 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 					pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
 				}
 				break;
+			case 0xfa :								// plx
+				xReg = csg65ce02_pull_byte(thisCPU);
+				setStatusForNZ(xReg);
+				break;
+			case 0xfb :								// plz
+				zReg = csg65ce02_pull_byte(thisCPU);
+				setStatusForNZ(zReg);
+				break;
 			case 0xf4 :								// phw immediate
 			case 0xfc :								// phw absolute
 				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_l));
@@ -703,6 +721,8 @@ inline void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t op
 			break;
 	};
 }
+
+void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode) {}
 
 void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string) {
 	snprintf(temp_string, 256, " pc  ac xr yr zr bp shsl nvebdizc\n%04x %02x %02x %02x %02x %02x %02x%02x %s%s%s %s%s%s%s", pcReg, aReg, xReg, yReg, zReg, bReg, spReg >> 8, spReg & 0x00ff, thisCPU->nFlag ? "*" : ".", thisCPU->vFlag ? "*" : ".", thisCPU->eFlag ? "*" : ".", thisCPU->dFlag ? "*" : ".", thisCPU->iFlag ? "*" : ".", thisCPU->zFlag ? "*" : ".", thisCPU->cFlag ? "*" : "." );
