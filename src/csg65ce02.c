@@ -9,6 +9,11 @@
 #include "csg65ce02.h"
 #include "csg65ce02_macros.h"
 
+// library internal function
+void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t opcode, uint16_t *eal, uint16_t *eah);
+
+
+
 const int addressing_mode_per_instruction[256] = {
 	IMPLIED,BP_X_IND,IMPLIED,IMPLIED,BP,BP,BP,BP,IMPLIED,IMM,ACCUM,IMPLIED,ABS,ABS,ABS,BPREL,
 	REL,BP_IND_Y,BP_IND_Z,WREL,BP,BP_X,BP_X,BP,IMPLIED,ABS_Y,ACCUM,IMPLIED,ABS,ABS_X,ABS_X,BPREL,
@@ -170,8 +175,7 @@ inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU) {
 unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	uint8_t current_opcode;
 	uint16_t effective_address_l;		// low byte of the effective address, normally used
-	uint16_t effective_address_h;		// high byte address of the effective address
-										// used for IMMW and ABSW addressing modes
+	uint16_t effective_address_h;		// high byte address of the effective address (for IMMW and ABSW addr mods)
 
 	// temporary storage possibilities
 	uint16_t	temp_word;
@@ -182,83 +186,10 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	thisCPU->instruction_counter = 0;
 
 	do {
-		current_opcode = csg65ce02_read_byte(pcReg);		// fetch opcode at current pc
-
-		switch( addressing_mode_per_instruction[current_opcode]) {
-			case IMM :
-				effective_address_l = pcReg1;
-				break;
-			case ABS :
-				effective_address_l = op1 | (op2 << 8);
-				break;
-			case BP :
-				effective_address_l = op1 | (bReg << 8);
-				break;
-			case ACCUM :
-				// IMPLEMENTED IN INSTRUCTION
-				break;
-			case IMPLIED :
-				// IMPLEMENTED IN INSTRUCTION
-				break;
-			case BP_X :
-				effective_address_l = ((uint8_t)(op1 + xReg)) | (bReg << 8);
-				break;
-			case BP_Y :
-				effective_address_l = ((uint8_t)(op1 + yReg)) | (bReg << 8);
-				break;
-			case ABS_X :
-				effective_address_l = (op1 | (op2 << 8)) + xReg;
-				break;
-			case ABS_Y :
-				effective_address_l = (op1 | (op2 << 8)) + yReg;
-				break;
-			case BP_X_IND :
-				effective_address_l =	csg65ce02_read_byte((op1 + xReg) | (bReg << 8)) |
-										(csg65ce02_read_byte((op1 + xReg + 1) | (bReg << 8)) << 8);
-				break;
-			case BP_IND_Y :
-				effective_address_l =	(csg65ce02_read_byte( op1 | (bReg << 8) ) |
-										(csg65ce02_read_byte( ((uint8_t)(op1 + 1)) | (bReg << 8) ) << 8)) + yReg;
-				break;
-			case BP_IND_Z :
-				effective_address_l =	(csg65ce02_read_byte( op1 | (bReg << 8) ) |
-										(csg65ce02_read_byte( ((uint8_t)(op1 + 1)) | (bReg << 8) ) << 8)) + zReg;
-				break;
-			case D_SP_IND_Y :
-				// IMPLEMENT!!!!!
-				break;
-			case REL :
-				temp_byte = op1;
-				temp_word = (temp_byte & 0x80) ? 0xff00 | temp_byte : 0x0000 | temp_byte;
-				effective_address_l = (uint16_t)(pcReg + 2 + temp_word);					// note "2"!
-				break;
-			case WREL :
-				temp_word = ( (uint16_t)op1 ) | ( (uint16_t)op2 << 8 );
-				effective_address_l = (uint16_t)(pcReg + 2 + temp_word);					// note "2"!
-				break;
-			case ABS_IND :
-				effective_address_l = csg65ce02_read_byte(op1 | (op2 << 8)) | (csg65ce02_read_byte((op1 | (op2 << 8))+1) << 8);
-				break;
-			case BPREL :
-				temp_byte = op2;															// note "op2"!
-				temp_word = (temp_byte & 0x80) ? 0xff00 | temp_byte : 0x0000 | temp_byte;
-				effective_address_l = (uint16_t)(pcReg + 3 + temp_word);					// note "3"!
-				break;
-			case ABS_X_IND :
-				temp_word = (uint16_t)((op1 | (op2 << 8)) + xReg);
-				effective_address_l = csg65ce02_read_byte(temp_word) | (csg65ce02_read_byte((uint16_t)(temp_word+1)) << 8);
-				break;
-			case IMMW :
-				effective_address_l = pcReg1;
-				effective_address_h = pcReg2;
-				break;
-			case ABSW :
-				effective_address_l = op1 | (op2 << 8);
-				effective_address_h = (uint16_t)(effective_address_l + 1);
-				break;
-			default :
-				break;
-		};
+		// fetch opcode at current pc
+		current_opcode = csg65ce02_read_byte(pcReg);
+		// calc effective address with inline function
+		csg65ce02_calculate_effective_address(thisCPU, current_opcode, &effective_address_l, &effective_address_h);
 
 		switch( current_opcode ) {
 			case 0x00 :								// brk instruction
@@ -702,4 +633,86 @@ void csg65ce02_dump_page(csg65ce02 *thisCPU, uint8_t pageNo) {
         printf(" %02x", csg65ce02_read_byte(pageNo << 8 | i));
     }
     printf("\n");
+}
+
+inline void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t opcode, uint16_t *eal, uint16_t *eah) {
+	// temporary storage possibilities
+	uint16_t	temp_word;
+	uint8_t		temp_byte;
+
+	switch( addressing_mode_per_instruction[opcode]) {
+		case IMM :
+			*eal = pcReg1;
+			break;
+		case ABS :
+			*eal = op1 | (op2 << 8);
+			break;
+		case BP :
+			*eal = op1 | (bReg << 8);
+			break;
+		case ACCUM :
+			// IMPLEMENTED IN INSTRUCTION
+			break;
+		case IMPLIED :
+			// IMPLEMENTED IN INSTRUCTION
+			break;
+		case BP_X :
+			*eal = ((uint8_t)(op1 + xReg)) | (bReg << 8);
+			break;
+		case BP_Y :
+			*eal = ((uint8_t)(op1 + yReg)) | (bReg << 8);
+			break;
+		case ABS_X :
+			*eal = (op1 | (op2 << 8)) + xReg;
+			break;
+		case ABS_Y :
+			*eal = (op1 | (op2 << 8)) + yReg;
+			break;
+		case BP_X_IND :
+			*eal = csg65ce02_read_byte((op1 + xReg) | (bReg << 8)) |
+					(csg65ce02_read_byte((op1 + xReg + 1) | (bReg << 8)) << 8);
+			break;
+		case BP_IND_Y :
+			*eal = (csg65ce02_read_byte( op1 | (bReg << 8) ) |
+					(csg65ce02_read_byte( ((uint8_t)(op1 + 1)) | (bReg << 8) ) << 8)) + yReg;
+			break;
+		case BP_IND_Z :
+			*eal = (csg65ce02_read_byte( op1 | (bReg << 8) ) |
+					(csg65ce02_read_byte( ((uint8_t)(op1 + 1)) | (bReg << 8) ) << 8)) + zReg;
+			break;
+		case D_SP_IND_Y :
+			// IMPLEMENT!!!!!
+			break;
+		case REL :
+			temp_byte = op1;
+			temp_word = (temp_byte & 0x80) ? 0xff00 | temp_byte : 0x0000 | temp_byte;
+			*eal = (uint16_t)(pcReg + 2 + temp_word);					// note "2"!
+			break;
+		case WREL :
+			temp_word = ( (uint16_t)op1 ) | ( (uint16_t)op2 << 8 );
+			*eal = (uint16_t)(pcReg + 2 + temp_word);					// note "2"!
+			break;
+		case ABS_IND :
+			*eal = csg65ce02_read_byte(op1 | (op2 << 8)) | (csg65ce02_read_byte((op1 | (op2 << 8))+1) << 8);
+			break;
+		case BPREL :
+			temp_byte = op2;															// note "op2"!
+			temp_word = (temp_byte & 0x80) ? 0xff00 | temp_byte : 0x0000 | temp_byte;
+			*eal = (uint16_t)(pcReg + 3 + temp_word);					// note "3"!
+			break;
+		case ABS_X_IND :
+			temp_word = (uint16_t)((op1 | (op2 << 8)) + xReg);
+			*eal = csg65ce02_read_byte(temp_word) | (csg65ce02_read_byte((uint16_t)(temp_word+1)) << 8);
+			break;
+		case IMMW :
+			*eal = pcReg1;
+			*eah = pcReg2;
+			break;
+		case ABSW :
+			*eal = op1 | (op2 << 8);
+			*eah = (uint16_t)(eal + 1);
+			break;
+		default :
+			break;
+	};
 }
