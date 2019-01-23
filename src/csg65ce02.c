@@ -11,8 +11,7 @@
 
 // library internal function
 void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t opcode, uint16_t *eal, uint16_t *eah);
-
-
+void csg65ce02_handle_opcode(csg65ce02 *thisCPU);
 
 const int addressing_mode_per_instruction[256] = {
 	IMPLIED,BP_X_IND,IMPLIED,IMPLIED,BP,BP,BP,BP,IMPLIED,IMM,ACCUM,IMPLIED,ABS,ABS,ABS,BPREL,
@@ -623,23 +622,11 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
     return thisCPU->cycle_count;
 }
 
-void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string) {
-	snprintf(temp_string, 256, " pc  ac xr yr zr bp shsl nvebdizc\n%04x %02x %02x %02x %02x %02x %02x%02x %s%s%s %s%s%s%s", pcReg, aReg, xReg, yReg, zReg, bReg, spReg >> 8, spReg & 0x00ff, thisCPU->nFlag ? "*" : ".", thisCPU->vFlag ? "*" : ".", thisCPU->eFlag ? "*" : ".", thisCPU->dFlag ? "*" : ".", thisCPU->iFlag ? "*" : ".", thisCPU->zFlag ? "*" : ".", thisCPU->cFlag ? "*" : "." );
-}
-
-void csg65ce02_dump_page(csg65ce02 *thisCPU, uint8_t pageNo) {
-    for(int i=0; i<0x100; i++) {
-        if(i%16 == 0) printf("\n%04x", pageNo<<8 | i);
-        printf(" %02x", csg65ce02_read_byte(pageNo << 8 | i));
-    }
-    printf("\n");
-}
-
 inline void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t opcode, uint16_t *eal, uint16_t *eah) {
 	// temporary storage possibilities
 	uint16_t	temp_word;
 	uint8_t		temp_byte;
-
+	// calculate effective address
 	switch( addressing_mode_per_instruction[opcode]) {
 		case IMM :
 			*eal = pcReg1;
@@ -715,4 +702,16 @@ inline void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t op
 		default :
 			break;
 	};
+}
+
+void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string) {
+	snprintf(temp_string, 256, " pc  ac xr yr zr bp shsl nvebdizc\n%04x %02x %02x %02x %02x %02x %02x%02x %s%s%s %s%s%s%s", pcReg, aReg, xReg, yReg, zReg, bReg, spReg >> 8, spReg & 0x00ff, thisCPU->nFlag ? "*" : ".", thisCPU->vFlag ? "*" : ".", thisCPU->eFlag ? "*" : ".", thisCPU->dFlag ? "*" : ".", thisCPU->iFlag ? "*" : ".", thisCPU->zFlag ? "*" : ".", thisCPU->cFlag ? "*" : "." );
+}
+
+void csg65ce02_dump_page(csg65ce02 *thisCPU, uint8_t pageNo) {
+    for(int i=0; i<0x100; i++) {
+        if(i%16 == 0) printf("\n%04x", pageNo<<8 | i);
+        printf(" %02x", csg65ce02_read_byte(pageNo << 8 | i));
+    }
+    printf("\n");
 }
