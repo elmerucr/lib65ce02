@@ -11,7 +11,7 @@
 
 // library internal function
 void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t opcode, uint16_t *eal, uint16_t *eah);
-void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode);
+void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t eal, uint16_t eah);
 
 const int addressing_mode_per_instruction[256] = {
 	IMPLIED,BP_X_IND,IMPLIED,IMPLIED,BP,BP,BP,BP,IMPLIED,IMM,ACCUM,IMPLIED,ABS,ABS,ABS,BPREL,
@@ -172,462 +172,19 @@ inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU) {
 
 //	Main function, execute a number of cycles on the virtual cpu
 unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
-	uint8_t current_opcode;
-	uint16_t effective_address_l;		// low byte of the effective address, normally used
+	uint8_t  current_opcode;
+	uint16_t effective_address_l;		// low byte address of the effective address, normally used
 	uint16_t effective_address_h;		// high byte address of the effective address (for IMMW and ABSW addr mods)
-
-	// temporary storage possibilities
-	uint16_t	temp_word;
-	uint8_t		temp_byte;
-	uint8_t		temp_byte2;
 
 	thisCPU->cycle_count = 0;
 	thisCPU->instruction_counter = 0;
 
 	do {
-		// fetch opcode at current pc
 		current_opcode = csg65ce02_read_byte(pcReg);
-		// calc effective address with inline function
 		csg65ce02_calculate_effective_address(thisCPU, current_opcode, &effective_address_l, &effective_address_h);
-
-		csg65ce02_handle_opcode(thisCPU, current_opcode);
-
-		switch( current_opcode ) {
-			case 0x00 :								// brk instruction
-				// push high byte of the pc+2 on the stack (note rti will not increase pc on return)
-				csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));
-				// push low byte of the pc+2 on the stack (note rti will not increase pc on return)
-				csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
-				// push sr onto stack
-				temp_byte =	thisCPU->nFlag |
-							thisCPU->vFlag |
-							thisCPU->eFlag |
-							bFlagValue |			// NOTE: In case of irq or nmi, this needs to be 0!!!!  FLAGGED!!!!!!!!
-							thisCPU->dFlag |
-							thisCPU->iFlag |        // yes, the i flag as it was during last instruction is pushed!
-							thisCPU->zFlag |
-							thisCPU->cFlag;
-				csg65ce02_push_byte(thisCPU, temp_byte);
-				// set interrupt disable flag
-				thisCPU->iFlag = iFlagValue;
-
-				// load pc vector for irq/brk
-				thisCPU->pc = csg65ce02_read_byte(0xfffe) | (csg65ce02_read_byte(0xffff) << 8);
-
-				// clear the decimal flag (it will be restored by the rti instruction) (Eyes, p338)
-				// note: in older versions of the cpu (nmos) this didn't happen, resulting in difficult to find bugs
-				thisCPU->dFlag = 0x00;
-				break;
-			case 0x01 :								// ora (bp,x)
-			case 0x05 :								// ora bp
-			case 0x09 :								// ora immediate
-			case 0x0d :								// ora abs
-			case 0x11 :								// ora (bp),y
-			case 0x12 :								// ora (bp),z
-			case 0x15 :								// ora bp,x
-			case 0x19 :								// ora abs,y
-			case 0x1d :								// ora abs,x
-				aReg = aReg | (csg65ce02_read_byte(effective_address_l));
-				setStatusForNZ(aReg);
-				break;
-			case 0x02 :								// cle
-				thisCPU->eFlag = 0x00;
-				break;
-			case 0x03 :								// see
-				thisCPU->eFlag = eFlagValue;
-				break;
-			// case 0x04 :								// tsb bp
-			// case 0x0c :								// tsb abs
-			// 	temp_byte = aReg & memory[effective_address_l];
-			// 	if(temp_byte) {						// some of the bit locs of both values were set
-			// 		thisCPU->zFlag = 0x00;
-			// 	} else {
-			// 		thisCPU->zFlag = zFlagValue;
-			// 	}
-			// 	memory[effective_address_l] = aReg | memory[effective_address_l];
-			// 	break;
-			case 0x07 :								// rmb 0,bp
-			case 0x17 :								// rmb 1,bp
-			case 0x27 :								// rmb 2,bp
-			case 0x37 :								// rmb 3,bp
-			case 0x47 :								// rmb 4,bp
-			case 0x57 :								// rmb 5,bp
-			case 0x67 :								// rmb 6,bp
-			case 0x77 :								// rmb 7,bp
-			case 0x87 :								// smb 0,bp
-			case 0x97 :								// smb 0,bp
-			case 0xa7 :								// smb 0,bp
-			case 0xb7 :								// smb 0,bp
-			case 0xc7 :								// smb 0,bp
-			case 0xd7 :								// smb 0,bp
-			case 0xe7 :								// smb 0,bp
-			case 0xf7 :								// smb 0,bp
-				// Which bit from bp address is going to be tested? Store it in temp_byte
-				temp_byte = (current_opcode & 0x70) >> 4;
-				if(current_opcode & 0x80) {				// set memory bit
-					csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) | (0x01 << temp_byte) );
-				} else {								// reset (clear) memory bit
-					csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) & (0xff - (0x01 << temp_byte)));
-				}
-				break;
-			case 0x0b :								// tsy
-				yReg = (spReg & 0xff00) >> 8;
-				setStatusForNZ(yReg);
-				break;
-			case 0x0f :								// bbr 0,bp,rel
-			case 0x1f :								// bbr 1,bp,rel
-			case 0x2f :								// bbr 2,bp,rel
-			case 0x3f :								// bbr 3,bp,rel
-			case 0x4f :								// bbr 4,bp,rel
-			case 0x5f :								// bbr 5,bp,rel
-			case 0x6f :								// bbr 6,bp,rel
-			case 0x7f :								// bbr 7,bp,rel
-			case 0x8f :								// bbs 0,bp,rel
-			case 0x9f :								// bbs 1,bp,rel
-			case 0xaf :								// bbs 2,bp,rel
-			case 0xbf :								// bbs 3,bp,rel
-			case 0xcf :								// bbs 4,bp,rel
-			case 0xdf :								// bbs 5,bp,rel
-			case 0xef :								// bbs 6,bp,rel
-			case 0xff :								// bbs 7,bp,rel
-				// Calculate effective basepage address, store it in temp_word
-				temp_word = op1 | (bReg << 8);
-				// Which bit will be tested for? And store it in temp_byte
-				temp_byte = (current_opcode & 0x70) >> 4;
-				// effect. address (rel) was already calculated
-				if(current_opcode & 0x80) {				// test for set
-					if(csg65ce02_read_byte(temp_word) & (0x01<<temp_byte)) {
-						pcReg = effective_address_l;
-					} else {
-						pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
-					}
-				} else {								// test for clear
-					if(!(csg65ce02_read_byte(temp_word) & (0x01<<temp_byte))) {
-						pcReg = effective_address_l;
-					} else {
-						pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
-					}
-				}
-				break;
-			case 0x10 :								// bpl rel
-			case 0x13 :								// bpl wrel
-				if(thisCPU->nFlag) {			// n flag is set, skip to next instruction
-					pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
-				} else {						// n flag not set, take relative jump
-					pcReg = effective_address_l;
-				}
-				break;
-			case 0x18 :								// clc instruction
-				thisCPU->cFlag = 0x00;
-				break;
-			case 0x1a :								// inc instruction
-				aReg++;
-				setStatusForNZ(aReg);
-				break;
-			case 0x20 :								// jsr abs instruction (push last byte addr of instr
-			case 0x23 :								// jsr (abs,x)
-				csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));
-				csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
-				pcReg = effective_address_l;
-				break;
-			case 0x24 :								// bit bp
-			case 0x2c :								// bit abs
-			case 0x34 :								// bit bp,x
-			case 0x3c :								// bit abs,x
-			case 0x89 :								// bit immediate (note 65c02 not n&v flags!)
-				temp_byte = csg65ce02_read_byte(effective_address_l);
-				setStatusForZ(temp_byte & aReg);
-				thisCPU->nFlag = temp_byte & nFlagValue;
-				thisCPU->vFlag = temp_byte & vFlagValue;
-				break;
-			case 0x2b :								// tys
-				spReg = (spReg & 0x00ff) | (yReg << 8);
-				break;
-			case 0x30 :								// bmi rel
-			case 0x33 :								// bmi wrel
-				if(thisCPU->nFlag) {			// n flag is set, take relative jump
-					pcReg = effective_address_l;
-				} else {						// n flag not set, skip to next instruction
-					pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
-				}
-				break;
-			case 0x38 :								// sec
-				thisCPU->cFlag = cFlagValue;
-				break;
-			case 0x3a :								// dec
-				aReg--;
-				setStatusForNZ(aReg);
-				break;
-			case 0x40 :								// rti
-				temp_byte = csg65ce02_pull_byte(thisCPU);
-				thisCPU->nFlag = temp_byte & nFlagValue;
-				thisCPU->vFlag = temp_byte & vFlagValue;
-				thisCPU->eFlag = temp_byte & eFlagValue;
-						// no b flag to set of course...
-				thisCPU->dFlag = temp_byte & dFlagValue;
-				thisCPU->iFlag = temp_byte & iFlagValue;
-				thisCPU->zFlag = temp_byte & zFlagValue;
-				thisCPU->cFlag = temp_byte & cFlagValue;
-				// restore the program counter
-				pcReg = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
-				// note: rti doesn't need a correction of pc afterwards (unlike rts)
-				break;
-			case 0x48 :								// pha
-				csg65ce02_push_byte(thisCPU, aReg);
-				break;
-			case 0x4b :								// taz
-				zReg = aReg;
-				setStatusForNZ(zReg);
-				break;
-            case 0x4c :								// jmp abs
-			case 0x6c :								// jmp (abs)
-			case 0x7c :								// jmp (abs,x)
-				pcReg = effective_address_l;
-				break;
-			case 0x58 :								// cli
-				thisCPU->iFlag = 0x00;
-				break;
-			case 0x5a :								// phy
-				csg65ce02_push_byte(thisCPU, yReg);
-				break;
-			case 0x5b :								// tab
-				bReg = aReg;
-				break;
-            case 0x60 :								// rts instruction
-				pcReg = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
-				pcReg = (uint16_t)(pcReg+1);		// increase pc by 1 and wrap if necessary
-				break;
-			case 0x61 :								// adc (bp,x) - NEEDS SPECIAL CARE FOR DECIMAL MODE
-			case 0x65 :								// adc bp
-			case 0x69 :								// adc immediate
-			case 0x6d :								// adc absolute
-			case 0x71 :								// adc (bp),y
-			case 0x72 :								// adc (bp),z
-			case 0x75 :								// adc bp,x
-			case 0x79 :								// adc abs,y
-			case 0x7d :								// adc abs,x
-				temp_byte = csg65ce02_read_byte(effective_address_l);
-				temp_word = aReg + temp_byte + thisCPU->cFlag;
-				if(temp_word & 0xff00) thisCPU->cFlag = cFlagValue; else thisCPU->cFlag = 0;
-				temp_byte2 = temp_word & 0xff;
-				if(((aReg^temp_byte2) & (temp_byte^temp_byte2)) & 0x80) {
-					thisCPU->vFlag = vFlagValue;
-				} else {
-					thisCPU->vFlag = 0x00;
-				}
-				aReg = temp_byte2;
-				setStatusForNZ(aReg);
-				break;
-			case 0x64 :								// stz bp
-				csg65ce02_write_byte(effective_address_l, zReg);
-				break;
-			case 0x68 :								// pla
-				aReg = csg65ce02_pull_byte(thisCPU);
-				setStatusForNZ(aReg);
-				break;
-			case 0x6b :								// tza
-				aReg = zReg;
-				setStatusForNZ(aReg);
-				break;
-			case 0x78 :								// sei
-				thisCPU->iFlag = iFlagValue;
-				break;
-			case 0x7a :								// ply
-				yReg = csg65ce02_pull_byte(thisCPU);
-				setStatusForNZ(yReg);
-				break;
-			case 0x80 :								// bra rel
-			case 0x83 :								// bra wrel
-				pcReg = effective_address_l;
-				break;
-			case 0x81 :								// sta (bp,x)
-			case 0x8d :								// sta absolute
-			case 0x99 :								// sta abs,y
-				csg65ce02_write_byte(effective_address_l, aReg);
-				break;
-			case 0x84 :								// sty bp
-			case 0x8b :								// sty abs,x
-			case 0x8c :								// sty abs
-			case 0x94 :								// sty bp,x
-				csg65ce02_write_byte(effective_address_l, yReg);
-				break;
-			case 0x86 :								// stx bp
-			case 0x8e :								// stx absolute
-			case 0x96 :								// stx bp,y
-			case 0x9b :								// stx absolute,y
-				csg65ce02_write_byte(effective_address_l, xReg);
-				break;
-
-			case 0x88 :								// dey
-				yReg--;
-				setStatusForNZ(yReg);
-				break;
-			case 0x90 :								// bcc rel
-			case 0x93 :								// bcc wrel
-				if(thisCPU->cFlag) {			// carry set, skip to next instruction
-					pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
-				} else {						// carry not set, take relative jump
-					pcReg = effective_address_l;
-				}
-				break;
-			case 0x9a :								// txs
-				spReg = (spReg & 0xff00) | xReg;
-				break;
-			case 0xa0 :								// ldy immediate
-			case 0xa4 :								// ldy bp
-			case 0xac :								// ldy abs
-			case 0xb4 :								// ldy bp,x
-			case 0xbc :								// ldy abs,x
-				yReg = csg65ce02_read_byte(effective_address_l);
-				setStatusForNZ(yReg);
-				break;
-			case 0xa1 :								// lda (bp,x)
-			case 0xa5 :								// lda bp
-			case 0xa9 :								// lda imm
-			case 0xad :								// lda abs
-			case 0xb1 :								// lda (bp),y
-			case 0xb2 :								// lda (bp),z
-			case 0xb5 :								// lda bp,x
-			case 0xb9 :								// lda abs,y
-			case 0xbd :								// lda abs,x
-				aReg = csg65ce02_read_byte(effective_address_l);
-				setStatusForNZ(aReg);
-				break;
-			case 0xa2 :								// ldx immediate
-			case 0xa6 :								// ldx bp
-			case 0xae :								// ldx abs
-			case 0xb6 :								// ldx bp,y
-			case 0xbe :								// ldx abs,y
-				xReg = csg65ce02_read_byte(effective_address_l);
-				setStatusForNZ(xReg);
-				break;
-			case 0xa3 :								// ldz immediate
-			case 0xab :								// ldz abs
-			case 0xbb :								// ldz abs,x
-				zReg = csg65ce02_read_byte(effective_address_l);
-				setStatusForNZ(zReg);
-				break;
-			case 0xaa :								// tax
-				xReg = aReg;
-				setStatusForNZ(xReg);
-				break;
-			case 0xb0 :								// bcs rel
-			case 0xb3 :								// bcs wrel
-				if(thisCPU->cFlag) {			// carry set, take relative jump
-					pcReg = effective_address_l;
-				} else {						// carry not set, skip to next instruction
-					pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
-				}
-				break;
-			case 0xba :								// tsx instruction
-				xReg = (spReg & 0x00ff);
-				setStatusForNZ(xReg);
-				break;
-			case 0xc0 :								// cpy immediate
-			case 0xc4 :								// cpy bp
-			case 0xcc :								// cpy abs
-				temp_word = (0x0100 | yReg) - csg65ce02_read_byte(effective_address_l);
-				setStatusForNZ(0x00ff & temp_word);
-				if(temp_word & 0xff00) {		// yReg >= operand
-					thisCPU->cFlag = cFlagValue;
-				} else {						// yReg < operand
-					thisCPU->cFlag = 0;
-				}
-				break;
-			case 0xc1 :								// cmp (bp,x)
-			case 0xc5 :								// cmp bp
-			case 0xc9 :								// cmp immediate
-			case 0xcd :								// cmp abs
-			case 0xd1 :								// cmp (bp),y
-			case 0xd2 :								// cmp (bp),z
-			case 0xd5 :								// cmp bp,x
-			case 0xd9 :								// cmp abs,y
-			case 0xdd :								// cmp abs,x
-				temp_word = (0x0100 | aReg) - csg65ce02_read_byte(effective_address_l);
-				setStatusForNZ(0x00ff & temp_word);
-				if(temp_word & 0xff00) {		// aReg >= operand
-					thisCPU->cFlag = cFlagValue;
-				} else {						// aReg < operand
-					thisCPU->cFlag = 0;
-				}
-				break;
-			case 0xc2 :								// cpz immediate
-			case 0xd4 :								// cpz bp
-			case 0xdc :								// cpz absolute
-				temp_word = (0x0100 | zReg) - csg65ce02_read_byte(effective_address_l);
-				setStatusForNZ(0x00ff & temp_word);
-				if(temp_word & 0xff00) {		// zReg >= operand
-					thisCPU->cFlag = cFlagValue;
-				} else {						// zReg < operand
-					thisCPU->cFlag = 0;
-				}
-				break;
-			case 0xc8 :								// iny
-				yReg++;
-				setStatusForNZ(yReg);
-				break;
-			case 0xca :								// dex
-				xReg--;
-				setStatusForNZ(xReg);
-				break;
-			case 0xd0 :								// bne rel
-			case 0xd3 :								// bne wrel
-				if(thisCPU->zFlag) {			// equal, skip to next instruction
-					pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
-				} else {						// not equal, take relative jump
-					pcReg = effective_address_l;
-				}
-				break;
-			case 0xda :								// phx
-				csg65ce02_push_byte(thisCPU, xReg);
-				break;
-			case 0xdb :								// phz
-				csg65ce02_push_byte(thisCPU, zReg);
-				break;
-			case 0xe0 :								// cpx immediate
-			case 0xe4 :								// cpx bp
-			case 0xec :								// cpx abs
-				temp_word = (0x0100 | xReg) - csg65ce02_read_byte(effective_address_l);
-				setStatusForNZ(0x00ff & temp_word);
-				if(temp_word & 0xff00) {		// xReg >= operand
-					thisCPU->cFlag = cFlagValue;
-				} else {						// xReg < operand
-					thisCPU->cFlag = 0;
-				}
-				break;
-			case 0xe8 :								// inx
-				xReg++;
-				setStatusForNZ(xReg);
-				break;
-            case 0xea :								// nop instruction
-				break;
-			case 0xf0 :								// beq rel
-			case 0xf3 :								// beq wrel
-				if(thisCPU->zFlag) {			// equal, take relative jump
-					pcReg = effective_address_l;
-				} else {						// not equal, skip to next instruction
-					pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
-				}
-				break;
-			case 0xfa :								// plx
-				xReg = csg65ce02_pull_byte(thisCPU);
-				setStatusForNZ(xReg);
-				break;
-			case 0xfb :								// plz
-				zReg = csg65ce02_pull_byte(thisCPU);
-				setStatusForNZ(zReg);
-				break;
-			case 0xf4 :								// phw immediate
-			case 0xfc :								// phw absolute
-				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_l));
-				csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_h));
-				break;
-            default :								// opcode not implemented
-				printf("error: opcode not implemented\n");
-        }
+		csg65ce02_handle_opcode(thisCPU, current_opcode, effective_address_l, effective_address_h);
 		thisCPU->cycles_last_executed_instruction = cycles_per_instruction[current_opcode];
 		thisCPU->cycle_count += thisCPU->cycles_last_executed_instruction;
-
 		// increase pc only if the instruction does not actively change the pc by itself
 		if(!modify_pc_per_instruction[current_opcode]) {
 			pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
@@ -636,7 +193,6 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	// check for 3 conditions to continue running: (1) enough cycles?, (2) no breakpoint? and (3) breakpoints activated?
     } while(	(thisCPU->cycle_count < no_cycles) &&
 				!((thisCPU->breakpoint_array[pcReg] == true) && thisCPU->breakpoints_active) );
-
     return thisCPU->cycle_count;
 }
 
@@ -722,7 +278,448 @@ inline void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t op
 	};
 }
 
-void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode) {}
+inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t eal, uint16_t eah) {
+	uint8_t temp_byte;
+	uint8_t temp_byte2;
+	uint16_t temp_word;
+
+	uint16_t effective_address_l = eal;
+	uint16_t effective_address_h = eah;
+
+	switch( opcode ) {
+		case 0x00 :								// brk instruction
+			// push high byte of the pc+2 on the stack (note rti will not increase pc on return)
+			csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));
+			// push low byte of the pc+2 on the stack (note rti will not increase pc on return)
+			csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
+			// push sr onto stack
+			temp_byte =	thisCPU->nFlag |
+						thisCPU->vFlag |
+						thisCPU->eFlag |
+						bFlagValue |			// NOTE: In case of irq or nmi, this needs to be 0!!!!  FLAGGED!!!!!!!!
+						thisCPU->dFlag |
+						thisCPU->iFlag |        // yes, the i flag as it was during last instruction is pushed!
+						thisCPU->zFlag |
+						thisCPU->cFlag;
+			csg65ce02_push_byte(thisCPU, temp_byte);
+			// set interrupt disable flag
+			thisCPU->iFlag = iFlagValue;
+
+			// load pc vector for irq/brk
+			thisCPU->pc = csg65ce02_read_byte(0xfffe) | (csg65ce02_read_byte(0xffff) << 8);
+
+			// clear the decimal flag (it will be restored by the rti instruction) (Eyes, p338)
+			// note: in older versions of the cpu (nmos) this didn't happen, resulting in difficult to find bugs
+			thisCPU->dFlag = 0x00;
+			break;
+		case 0x01 :								// ora (bp,x)
+		case 0x05 :								// ora bp
+		case 0x09 :								// ora immediate
+		case 0x0d :								// ora abs
+		case 0x11 :								// ora (bp),y
+		case 0x12 :								// ora (bp),z
+		case 0x15 :								// ora bp,x
+		case 0x19 :								// ora abs,y
+		case 0x1d :								// ora abs,x
+			aReg = aReg | (csg65ce02_read_byte(effective_address_l));
+			setStatusForNZ(aReg);
+			break;
+		case 0x02 :								// cle
+			thisCPU->eFlag = 0x00;
+			break;
+		case 0x03 :								// see
+			thisCPU->eFlag = eFlagValue;
+			break;
+		// case 0x04 :								// tsb bp
+		// case 0x0c :								// tsb abs
+		// 	temp_byte = aReg & memory[effective_address_l];
+		// 	if(temp_byte) {						// some of the bit locs of both values were set
+		// 		thisCPU->zFlag = 0x00;
+		// 	} else {
+		// 		thisCPU->zFlag = zFlagValue;
+		// 	}
+		// 	memory[effective_address_l] = aReg | memory[effective_address_l];
+		// 	break;
+		case 0x07 :								// rmb 0,bp
+		case 0x17 :								// rmb 1,bp
+		case 0x27 :								// rmb 2,bp
+		case 0x37 :								// rmb 3,bp
+		case 0x47 :								// rmb 4,bp
+		case 0x57 :								// rmb 5,bp
+		case 0x67 :								// rmb 6,bp
+		case 0x77 :								// rmb 7,bp
+		case 0x87 :								// smb 0,bp
+		case 0x97 :								// smb 0,bp
+		case 0xa7 :								// smb 0,bp
+		case 0xb7 :								// smb 0,bp
+		case 0xc7 :								// smb 0,bp
+		case 0xd7 :								// smb 0,bp
+		case 0xe7 :								// smb 0,bp
+		case 0xf7 :								// smb 0,bp
+			// Which bit from bp address is going to be tested? Store it in temp_byte
+			temp_byte = (opcode & 0x70) >> 4;
+			if(opcode & 0x80) {						// set memory bit
+				csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) | (0x01 << temp_byte) );
+			} else {								// reset (clear) memory bit
+				csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) & (0xff - (0x01 << temp_byte)));
+			}
+			break;
+		case 0x0b :								// tsy
+			yReg = (spReg & 0xff00) >> 8;
+			setStatusForNZ(yReg);
+			break;
+		case 0x0f :								// bbr 0,bp,rel
+		case 0x1f :								// bbr 1,bp,rel
+		case 0x2f :								// bbr 2,bp,rel
+		case 0x3f :								// bbr 3,bp,rel
+		case 0x4f :								// bbr 4,bp,rel
+		case 0x5f :								// bbr 5,bp,rel
+		case 0x6f :								// bbr 6,bp,rel
+		case 0x7f :								// bbr 7,bp,rel
+		case 0x8f :								// bbs 0,bp,rel
+		case 0x9f :								// bbs 1,bp,rel
+		case 0xaf :								// bbs 2,bp,rel
+		case 0xbf :								// bbs 3,bp,rel
+		case 0xcf :								// bbs 4,bp,rel
+		case 0xdf :								// bbs 5,bp,rel
+		case 0xef :								// bbs 6,bp,rel
+		case 0xff :								// bbs 7,bp,rel
+			// Calculate effective basepage address, store it in temp_word
+			temp_word = op1 | (bReg << 8);
+			// Which bit will be tested for? And store it in temp_byte
+			temp_byte = (opcode & 0x70) >> 4;
+			// effect. address (rel) was already calculated
+			if(opcode & 0x80) {						// test for set
+				if(csg65ce02_read_byte(temp_word) & (0x01<<temp_byte)) {
+					pcReg = effective_address_l;
+				} else {
+					pcReg = (uint16_t)(pcReg+bytes_per_instruction[opcode]);
+				}
+			} else {								// test for clear
+				if(!(csg65ce02_read_byte(temp_word) & (0x01<<temp_byte))) {
+					pcReg = effective_address_l;
+				} else {
+					pcReg = (uint16_t)(pcReg+bytes_per_instruction[opcode]);
+				}
+			}
+			break;
+		case 0x10 :								// bpl rel
+		case 0x13 :								// bpl wrel
+			if(thisCPU->nFlag) {			// n flag is set, skip to next instruction
+				pcReg = (uint16_t)(pcReg+bytes_per_instruction[opcode]);
+			} else {						// n flag not set, take relative jump
+				pcReg = effective_address_l;
+			}
+			break;
+		case 0x18 :								// clc instruction
+			thisCPU->cFlag = 0x00;
+			break;
+		case 0x1a :								// inc instruction
+			aReg++;
+			setStatusForNZ(aReg);
+			break;
+		case 0x20 :								// jsr abs instruction (push last byte addr of instr
+		case 0x23 :								// jsr (abs,x)
+			csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));
+			csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
+			pcReg = effective_address_l;
+			break;
+		case 0x24 :								// bit bp
+		case 0x2c :								// bit abs
+		case 0x34 :								// bit bp,x
+		case 0x3c :								// bit abs,x
+		case 0x89 :								// bit immediate (note 65c02 not n&v flags!)
+			temp_byte = csg65ce02_read_byte(effective_address_l);
+			setStatusForZ(temp_byte & aReg);
+			thisCPU->nFlag = temp_byte & nFlagValue;
+			thisCPU->vFlag = temp_byte & vFlagValue;
+			break;
+		case 0x2b :								// tys
+			spReg = (spReg & 0x00ff) | (yReg << 8);
+			break;
+		case 0x30 :								// bmi rel
+		case 0x33 :								// bmi wrel
+			if(thisCPU->nFlag) {			// n flag is set, take relative jump
+				pcReg = effective_address_l;
+			} else {						// n flag not set, skip to next instruction
+				pcReg = (uint16_t)(pcReg+bytes_per_instruction[opcode]);
+			}
+			break;
+		case 0x38 :								// sec
+			thisCPU->cFlag = cFlagValue;
+			break;
+		case 0x3a :								// dec
+			aReg--;
+			setStatusForNZ(aReg);
+			break;
+		case 0x40 :								// rti
+			temp_byte = csg65ce02_pull_byte(thisCPU);
+			thisCPU->nFlag = temp_byte & nFlagValue;
+			thisCPU->vFlag = temp_byte & vFlagValue;
+			thisCPU->eFlag = temp_byte & eFlagValue;
+					// no b flag to set of course...
+			thisCPU->dFlag = temp_byte & dFlagValue;
+			thisCPU->iFlag = temp_byte & iFlagValue;
+			thisCPU->zFlag = temp_byte & zFlagValue;
+			thisCPU->cFlag = temp_byte & cFlagValue;
+			// restore the program counter
+			pcReg = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
+			// note: rti doesn't need a correction of pc afterwards (unlike rts)
+			break;
+		case 0x48 :								// pha
+			csg65ce02_push_byte(thisCPU, aReg);
+			break;
+		case 0x4b :								// taz
+			zReg = aReg;
+			setStatusForNZ(zReg);
+			break;
+		case 0x4c :								// jmp abs
+		case 0x6c :								// jmp (abs)
+		case 0x7c :								// jmp (abs,x)
+			pcReg = effective_address_l;
+			break;
+		case 0x58 :								// cli
+			thisCPU->iFlag = 0x00;
+			break;
+		case 0x5a :								// phy
+			csg65ce02_push_byte(thisCPU, yReg);
+			break;
+		case 0x5b :								// tab
+			bReg = aReg;
+			break;
+		case 0x60 :								// rts instruction
+			pcReg = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
+			pcReg = (uint16_t)(pcReg+1);		// increase pc by 1 and wrap if necessary
+			break;
+		case 0x61 :								// adc (bp,x) - NEEDS SPECIAL CARE FOR DECIMAL MODE
+		case 0x65 :								// adc bp
+		case 0x69 :								// adc immediate
+		case 0x6d :								// adc absolute
+		case 0x71 :								// adc (bp),y
+		case 0x72 :								// adc (bp),z
+		case 0x75 :								// adc bp,x
+		case 0x79 :								// adc abs,y
+		case 0x7d :								// adc abs,x
+			temp_byte = csg65ce02_read_byte(effective_address_l);
+			temp_word = aReg + temp_byte + thisCPU->cFlag;
+			if(temp_word & 0xff00) thisCPU->cFlag = cFlagValue; else thisCPU->cFlag = 0;
+			temp_byte2 = temp_word & 0xff;
+			if(((aReg^temp_byte2) & (temp_byte^temp_byte2)) & 0x80) {
+				thisCPU->vFlag = vFlagValue;
+			} else {
+				thisCPU->vFlag = 0x00;
+			}
+			aReg = temp_byte2;
+			setStatusForNZ(aReg);
+			break;
+		case 0x64 :								// stz bp
+			csg65ce02_write_byte(effective_address_l, zReg);
+			break;
+		case 0x68 :								// pla
+			aReg = csg65ce02_pull_byte(thisCPU);
+			setStatusForNZ(aReg);
+			break;
+		case 0x6b :								// tza
+			aReg = zReg;
+			setStatusForNZ(aReg);
+			break;
+		case 0x78 :								// sei
+			thisCPU->iFlag = iFlagValue;
+			break;
+		case 0x7a :								// ply
+			yReg = csg65ce02_pull_byte(thisCPU);
+			setStatusForNZ(yReg);
+			break;
+		case 0x80 :								// bra rel
+		case 0x83 :								// bra wrel
+			pcReg = effective_address_l;
+			break;
+		case 0x81 :								// sta (bp,x)
+		case 0x8d :								// sta absolute
+		case 0x99 :								// sta abs,y
+			csg65ce02_write_byte(effective_address_l, aReg);
+			break;
+		case 0x84 :								// sty bp
+		case 0x8b :								// sty abs,x
+		case 0x8c :								// sty abs
+		case 0x94 :								// sty bp,x
+			csg65ce02_write_byte(effective_address_l, yReg);
+			break;
+		case 0x86 :								// stx bp
+		case 0x8e :								// stx absolute
+		case 0x96 :								// stx bp,y
+		case 0x9b :								// stx absolute,y
+			csg65ce02_write_byte(effective_address_l, xReg);
+			break;
+
+		case 0x88 :								// dey
+			yReg--;
+			setStatusForNZ(yReg);
+			break;
+		case 0x90 :								// bcc rel
+		case 0x93 :								// bcc wrel
+			if(thisCPU->cFlag) {			// carry set, skip to next instruction
+				pcReg = (uint16_t)(pcReg+bytes_per_instruction[opcode]);
+			} else {						// carry not set, take relative jump
+				pcReg = effective_address_l;
+			}
+			break;
+		case 0x9a :								// txs
+			spReg = (spReg & 0xff00) | xReg;
+			break;
+		case 0xa0 :								// ldy immediate
+		case 0xa4 :								// ldy bp
+		case 0xac :								// ldy abs
+		case 0xb4 :								// ldy bp,x
+		case 0xbc :								// ldy abs,x
+			yReg = csg65ce02_read_byte(effective_address_l);
+			setStatusForNZ(yReg);
+			break;
+		case 0xa1 :								// lda (bp,x)
+		case 0xa5 :								// lda bp
+		case 0xa9 :								// lda imm
+		case 0xad :								// lda abs
+		case 0xb1 :								// lda (bp),y
+		case 0xb2 :								// lda (bp),z
+		case 0xb5 :								// lda bp,x
+		case 0xb9 :								// lda abs,y
+		case 0xbd :								// lda abs,x
+			aReg = csg65ce02_read_byte(effective_address_l);
+			setStatusForNZ(aReg);
+			break;
+		case 0xa2 :								// ldx immediate
+		case 0xa6 :								// ldx bp
+		case 0xae :								// ldx abs
+		case 0xb6 :								// ldx bp,y
+		case 0xbe :								// ldx abs,y
+			xReg = csg65ce02_read_byte(effective_address_l);
+			setStatusForNZ(xReg);
+			break;
+		case 0xa3 :								// ldz immediate
+		case 0xab :								// ldz abs
+		case 0xbb :								// ldz abs,x
+			zReg = csg65ce02_read_byte(effective_address_l);
+			setStatusForNZ(zReg);
+			break;
+		case 0xaa :								// tax
+			xReg = aReg;
+			setStatusForNZ(xReg);
+			break;
+		case 0xb0 :								// bcs rel
+		case 0xb3 :								// bcs wrel
+			if(thisCPU->cFlag) {			// carry set, take relative jump
+				pcReg = effective_address_l;
+			} else {						// carry not set, skip to next instruction
+				pcReg = (uint16_t)(pcReg+bytes_per_instruction[opcode]);
+			}
+			break;
+		case 0xba :								// tsx instruction
+			xReg = (spReg & 0x00ff);
+			setStatusForNZ(xReg);
+			break;
+		case 0xc0 :								// cpy immediate
+		case 0xc4 :								// cpy bp
+		case 0xcc :								// cpy abs
+			temp_word = (0x0100 | yReg) - csg65ce02_read_byte(effective_address_l);
+			setStatusForNZ(0x00ff & temp_word);
+			if(temp_word & 0xff00) {		// yReg >= operand
+				thisCPU->cFlag = cFlagValue;
+			} else {						// yReg < operand
+				thisCPU->cFlag = 0;
+			}
+			break;
+		case 0xc1 :								// cmp (bp,x)
+		case 0xc5 :								// cmp bp
+		case 0xc9 :								// cmp immediate
+		case 0xcd :								// cmp abs
+		case 0xd1 :								// cmp (bp),y
+		case 0xd2 :								// cmp (bp),z
+		case 0xd5 :								// cmp bp,x
+		case 0xd9 :								// cmp abs,y
+		case 0xdd :								// cmp abs,x
+			temp_word = (0x0100 | aReg) - csg65ce02_read_byte(effective_address_l);
+			setStatusForNZ(0x00ff & temp_word);
+			if(temp_word & 0xff00) {		// aReg >= operand
+				thisCPU->cFlag = cFlagValue;
+			} else {						// aReg < operand
+				thisCPU->cFlag = 0;
+			}
+			break;
+		case 0xc2 :								// cpz immediate
+		case 0xd4 :								// cpz bp
+		case 0xdc :								// cpz absolute
+			temp_word = (0x0100 | zReg) - csg65ce02_read_byte(effective_address_l);
+			setStatusForNZ(0x00ff & temp_word);
+			if(temp_word & 0xff00) {		// zReg >= operand
+				thisCPU->cFlag = cFlagValue;
+			} else {						// zReg < operand
+				thisCPU->cFlag = 0;
+			}
+			break;
+		case 0xc8 :								// iny
+			yReg++;
+			setStatusForNZ(yReg);
+			break;
+		case 0xca :								// dex
+			xReg--;
+			setStatusForNZ(xReg);
+			break;
+		case 0xd0 :								// bne rel
+		case 0xd3 :								// bne wrel
+			if(thisCPU->zFlag) {			// equal, skip to next instruction
+				pcReg = (uint16_t)(pcReg+bytes_per_instruction[opcode]);
+			} else {						// not equal, take relative jump
+				pcReg = effective_address_l;
+			}
+			break;
+		case 0xda :								// phx
+			csg65ce02_push_byte(thisCPU, xReg);
+			break;
+		case 0xdb :								// phz
+			csg65ce02_push_byte(thisCPU, zReg);
+			break;
+		case 0xe0 :								// cpx immediate
+		case 0xe4 :								// cpx bp
+		case 0xec :								// cpx abs
+			temp_word = (0x0100 | xReg) - csg65ce02_read_byte(effective_address_l);
+			setStatusForNZ(0x00ff & temp_word);
+			if(temp_word & 0xff00) {		// xReg >= operand
+				thisCPU->cFlag = cFlagValue;
+			} else {						// xReg < operand
+				thisCPU->cFlag = 0;
+			}
+			break;
+		case 0xe8 :								// inx
+			xReg++;
+			setStatusForNZ(xReg);
+			break;
+		case 0xea :								// nop instruction
+			break;
+		case 0xf0 :								// beq rel
+		case 0xf3 :								// beq wrel
+			if(thisCPU->zFlag) {			// equal, take relative jump
+				pcReg = effective_address_l;
+			} else {						// not equal, skip to next instruction
+				pcReg = (uint16_t)(pcReg+bytes_per_instruction[opcode]);
+			}
+			break;
+		case 0xfa :								// plx
+			xReg = csg65ce02_pull_byte(thisCPU);
+			setStatusForNZ(xReg);
+			break;
+		case 0xfb :								// plz
+			zReg = csg65ce02_pull_byte(thisCPU);
+			setStatusForNZ(zReg);
+			break;
+		case 0xf4 :								// phw immediate
+		case 0xfc :								// phw absolute
+			csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_l));
+			csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_h));
+			break;
+		default :								// opcode not implemented
+			printf("error: opcode not implemented\n");
+	}
+}
 
 void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string) {
 	snprintf(temp_string, 256, " pc  ac xr yr zr bp shsl nvebdizc\n%04x %02x %02x %02x %02x %02x %02x%02x %s%s%s %s%s%s%s", pcReg, aReg, xReg, yReg, zReg, bReg, spReg >> 8, spReg & 0x00ff, thisCPU->nFlag ? "*" : ".", thisCPU->vFlag ? "*" : ".", thisCPU->eFlag ? "*" : ".", thisCPU->dFlag ? "*" : ".", thisCPU->iFlag ? "*" : ".", thisCPU->zFlag ? "*" : ".", thisCPU->cFlag ? "*" : "." );
