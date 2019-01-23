@@ -717,7 +717,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_h));
 			break;
 		default :								// opcode not implemented
-			printf("error: opcode not implemented\n");
+			printf("error: opcode 0x%02x not implemented\n", opcode);
 	}
 }
 
