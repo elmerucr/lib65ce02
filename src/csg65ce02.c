@@ -515,7 +515,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 			case 0x8e :								// stx absolute
 			case 0x96 :								// stx bp,y
 			case 0x9b :								// stx absolute,y
-				csg65ce02_write_byte(effective_address_l, aReg);
+				csg65ce02_write_byte(effective_address_l, xReg);
 				break;
 
 			case 0x88 :								// dey

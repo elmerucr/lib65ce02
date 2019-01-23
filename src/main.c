@@ -33,19 +33,27 @@ int main() {
 	csg65ce02_ram[0xa901] = 0xda;		// phx
 	csg65ce02_ram[0xa902] = 0x5a;		// phy
 	csg65ce02_ram[0xa903] = 0xdb;		// phz
+
+	// discover the cause of irq, if brk instruction, then take into account signature byte!
+	// maybe better use the stack pointer relative addressing mode!!!
 	csg65ce02_ram[0xa904] = 0xba;		// tsx, load lsb of sp into x
 	csg65ce02_ram[0xa905] = 0x0b;		// tsy, load msb of sp into y
 	csg65ce02_ram[0xa906] = 0x86;		// stx $f0
 	csg65ce02_ram[0xa907] = 0xf0;
 	csg65ce02_ram[0xa908] = 0x84;		// sty $f1
 	csg65ce02_ram[0xa909] = 0xf1;
-	csg65ce02_ram[0xa90a] = 0xa0;		// ldy #$06
-	csg65ce02_ram[0xa90b] = 0x06;
-	csg65ce02_ram[0xa90c] = 0xb1;		// lda ($f0),y    NOT WORKING???????
+	csg65ce02_ram[0xa90a] = 0xa0;		// ldy #$05
+	csg65ce02_ram[0xa90b] = 0x05;
+	csg65ce02_ram[0xa90c] = 0xb1;		// lda ($f0),y
 	csg65ce02_ram[0xa90d] = 0xf0;
 
-	// maybe better use the stack pointer relative addressing mode!!!
+	// do your interrupt handling code here
 
+	// restore registers
+	//csg65ce02_ram[0xa90e] = 0x00;		// plz
+	// ply
+	// plx
+	// pla
 
 	csg65ce02_ram[0xa90e] = 0x40;		// rti
 
