@@ -33,6 +33,7 @@ typedef struct {
 	// irq and nmi emulation
 	bool irq_pin;
 	bool nmi_pin;
+	bool irq_pending;
 
 	// info and pointer to a 64k array with breakpoint information
 	bool		breakpoints_active;

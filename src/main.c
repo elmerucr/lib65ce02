@@ -152,6 +152,7 @@ int main() {
 			printf("\nCommands:\n");
 			printf("b - Breakpoint related commands\n");
 			printf("d - Disassemble next 8 instructions\n");
+			printf("i - Change irq pin state\n");
 			printf("n - Execute next instruction\n");
 			printf("r - Dump processor registers\n");
 			printf("t - Dump current stack page\n\n");
@@ -160,6 +161,14 @@ int main() {
 			printf("help   - Prints this help message\n");
 			printf("reset  - Reset 65ce02\n\n");
 			//printf("Type 'help <command name>' for more detailed info\n\n");
+		} else if( strcmp(token0, "i") == 0) {
+			if(cpu0.irq_pin == true) {
+				csg65ce02_pull_irq_pin(&cpu0);
+				printf("irq pin pulled to 0\n");
+			} else {
+				csg65ce02_release_irq_pin(&cpu0);
+				printf("irq pin released to 1\n");
+			}
 		} else if( strcmp(token0, "n") == 0) {
 			unsigned int n = 0;
 			if( token1 == NULL ) {

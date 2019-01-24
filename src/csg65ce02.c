@@ -120,8 +120,10 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 	thisCPU->zFlag = 0x00;
 	thisCPU->cFlag = 0x00;
 
+	// default states of irq and nmi pins
 	thisCPU->irq_pin = true;
 	thisCPU->nmi_pin = true;
+	thisCPU->irq_pending = false;
 
     pcReg = csg65ce02_read_byte(0xfffc) | (csg65ce02_read_byte(0xfffd) << 8);
 
@@ -182,8 +184,14 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	thisCPU->cycle_count = 0;
 	thisCPU->instruction_counter = 0;
 
+	if(!(thisCPU->irq_pin) && !(thisCPU->iFlag) ) {
+		thisCPU->irq_pending = true;
+		//printf("ouch, an irq should be happening :-)\n");
+	}
+
 	do {
-		current_opcode = csg65ce02_read_byte(pcReg);
+		current_opcode = thisCPU->irq_pending ? 0x00 : csg65ce02_read_byte(pcReg);
+		//current_opcode = csg65ce02_read_byte(pcReg);
 		csg65ce02_calculate_effective_address(thisCPU, current_opcode, &effective_address_l, &effective_address_h);
 		csg65ce02_handle_opcode(thisCPU, current_opcode, effective_address_l, effective_address_h);
 		thisCPU->cycles_last_executed_instruction = cycles_per_instruction[current_opcode];
@@ -291,15 +299,25 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 
 	switch( opcode ) {
 		case 0x00 :								// brk instruction
+
+			// BUG: WHEN IRQ HAPPENS, PC SHOULD BE PUSHED ONTO THE STACK! NOT PC+2!
+
 			// push high byte of the pc+2 on the stack (note rti will not increase pc on return)
 			csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));
-			// push low byte of the pc+2 on the stack (note rti will not increase pc on return)
+			// push low byte of the pc+2 on the stack
 			csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
+			// perform brk / irq / nmi logic...
+			if(thisCPU->irq_pending) {
+				temp_byte2 = 0x00;
+				thisCPU->irq_pending = false;
+			} else {
+				temp_byte2 = bFlagValue;
+			}
 			// push sr onto stack
 			temp_byte =	thisCPU->nFlag |
 						thisCPU->vFlag |
 						thisCPU->eFlag |
-						bFlagValue |			// NOTE: In case of irq or nmi, this needs to be 0!!!!  FLAGGED!!!!!!!!
+						temp_byte2     |		// only bFlagValue when cause was brk instruction
 						thisCPU->dFlag |
 						thisCPU->iFlag |        // yes, the i flag as it was during last instruction is pushed!
 						thisCPU->zFlag |
@@ -732,7 +750,7 @@ void csg65ce02_release_irq_pin(csg65ce02 *thisCPU) {
 }
 
 void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string) {
-	snprintf(temp_string, 256, " pc  ac xr yr zr bp shsl nvebdizc\n%04x %02x %02x %02x %02x %02x %02x%02x %s%s%s %s%s%s%s", pcReg, aReg, xReg, yReg, zReg, bReg, spReg >> 8, spReg & 0x00ff, thisCPU->nFlag ? "*" : ".", thisCPU->vFlag ? "*" : ".", thisCPU->eFlag ? "*" : ".", thisCPU->dFlag ? "*" : ".", thisCPU->iFlag ? "*" : ".", thisCPU->zFlag ? "*" : ".", thisCPU->cFlag ? "*" : "." );
+	snprintf(temp_string, 256, " pc  ac xr yr zr bp shsl nvebdizc in\n%04x %02x %02x %02x %02x %02x %02x%02x %s%s%s %s%s%s%s %s%s", pcReg, aReg, xReg, yReg, zReg, bReg, spReg >> 8, spReg & 0x00ff, thisCPU->nFlag ? "*" : ".", thisCPU->vFlag ? "*" : ".", thisCPU->eFlag ? "*" : ".", thisCPU->dFlag ? "*" : ".", thisCPU->iFlag ? "*" : ".", thisCPU->zFlag ? "*" : ".", thisCPU->cFlag ? "*" : ".", thisCPU->irq_pin ? "1" : "0", thisCPU->nmi_pin ? "1" : "0");
 }
 
 void csg65ce02_dump_page(csg65ce02 *thisCPU, uint8_t pageNo) {
