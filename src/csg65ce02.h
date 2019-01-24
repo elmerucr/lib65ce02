@@ -30,6 +30,10 @@ typedef struct {
 	uint8_t 	zFlag;		// Zero
 	uint8_t		cFlag;		// Carry
 
+	// irq and nmi emulation
+	bool irq_pin;
+	bool nmi_pin;
+
 	// info and pointer to a 64k array with breakpoint information
 	bool		breakpoints_active;
 	bool		*breakpoint_array;
@@ -100,11 +104,16 @@ uint8_t	csg65ce02_pull_byte(csg65ce02 *thisCPU);
 //	--> How to implement this? --> just store the duration of the currently executed instruction
 unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles);
 
-// returns 1 on success, else 0
-unsigned int csg65ce02_trigger_irq(csg65ce02 *thisCPU);
+// irq functions - simulate the irq pin on cpu - default state is '1' or 'true'
+// when it is 'pulled', state changes to false: interrupt is requested
+// iqr is state triggered
+// once the interrupt is acknowledged, the pin state automatically changes to true
+void csg65ce02_pull_irq_pin(csg65ce02 *thisCPU);
+void csg65ce02_release_irq_pin(csg65ce02 *thisCPU);
 
+// nmi functions
 // must always be acknowledged
-void csg65ce02_trigger_nmi(csg65ce02 *thisCPU);
+//void csg65ce02_trigger_nmi(csg65ce02 *thisCPU);
 
 
 //	Help functions for convenience

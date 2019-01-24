@@ -120,6 +120,9 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 	thisCPU->zFlag = 0x00;
 	thisCPU->cFlag = 0x00;
 
+	thisCPU->irq_pin = true;
+	thisCPU->nmi_pin = true;
+
     pcReg = csg65ce02_read_byte(0xfffc) | (csg65ce02_read_byte(0xfffd) << 8);
 
 	thisCPU->cycles_last_executed_instruction = 1;	// safe value after reset, so irq can't be acknowledged
@@ -719,6 +722,13 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		default :								// opcode not implemented
 			printf("error: opcode 0x%02x not implemented\n", opcode);
 	}
+}
+
+void csg65ce02_pull_irq_pin(csg65ce02 *thisCPU) {
+	thisCPU->irq_pin = false;
+}
+void csg65ce02_release_irq_pin(csg65ce02 *thisCPU) {
+	thisCPU->irq_pin = true;
 }
 
 void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string) {
