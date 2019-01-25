@@ -3,7 +3,7 @@
 //  Created by elmerucr on 16/06/2018.
 //  Copyright © 2018 elmerucr. All rights reserved.
 
-// Memory contains 1024kb ram, physically addressable by mmu, divided in 256 x 4kb blocks
+// Memory contains 64kb ram, physically addressable by mmu
 //
 // Please note:
 // Memory access functions are declared in csg65ce02.h, implementation is in csg65ce02_mmu.c

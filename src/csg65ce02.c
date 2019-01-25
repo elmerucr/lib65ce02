@@ -179,31 +179,39 @@ inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU) {
 unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	uint8_t  current_opcode;
 	uint16_t effective_address_l;		// low byte address of the effective address, normally used
-	uint16_t effective_address_h;		// high byte address of the effective address (for IMMW and ABSW addr mods)
+	uint16_t effective_address_h;		// high byte address of the effective address (for IMMW / ABSW addressing)
 
 	thisCPU->cycle_count = 0;
 	thisCPU->instruction_counter = 0;
 
+	// logic to initiate irq's or nmi's
 	if(!(thisCPU->irq_pin) && !(thisCPU->iFlag) ) {
 		thisCPU->irq_pending = true;
-		//printf("ouch, an irq should be happening :-)\n");
 	}
 
+	// actual instruction loop
 	do {
 		current_opcode = thisCPU->irq_pending ? 0x00 : csg65ce02_read_byte(pcReg);
-		//current_opcode = csg65ce02_read_byte(pcReg);
+
 		csg65ce02_calculate_effective_address(thisCPU, current_opcode, &effective_address_l, &effective_address_h);
+
 		csg65ce02_handle_opcode(thisCPU, current_opcode, effective_address_l, effective_address_h);
+
 		thisCPU->cycles_last_executed_instruction = cycles_per_instruction[current_opcode];
 		thisCPU->cycle_count += thisCPU->cycles_last_executed_instruction;
+
 		// increase pc only if the instruction does not actively change the pc by itself
 		if(!modify_pc_per_instruction[current_opcode]) {
 			pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
 		}
 		thisCPU->instruction_counter++;
-	// check for 3 conditions to continue running: (1) enough cycles?, (2) no breakpoint? and (3) breakpoints activated?
+	// Three conditions must be met to keep running:
+	//    (1) enough cycles?
+	//    (2) no breakpoint?
+	//    (3) breakpoints activated?
     } while(	(thisCPU->cycle_count < no_cycles) &&
 				!((thisCPU->breakpoint_array[pcReg] == true) && thisCPU->breakpoints_active) );
+
     return thisCPU->cycle_count;
 }
 
@@ -298,28 +306,32 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 	uint16_t effective_address_h = eah;
 
 	switch( opcode ) {
-		case 0x00 :								// brk instruction
-
-			// BUG: WHEN IRQ HAPPENS, PC SHOULD BE PUSHED ONTO THE STACK! NOT PC+2!
-
-			// push high byte of the pc+2 on the stack (note rti will not increase pc on return)
-			csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));
-			// push low byte of the pc+2 on the stack
-			csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
-			// perform brk / irq / nmi logic...
+		case 0x00 :								// brk instruction (or irq/nmi)
 			if(thisCPU->irq_pending) {
+				// push high byte of the pc on the stack (note rti will not increase pc on return)
+				csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg)));
+				// push low byte of the pc on the stack
+				csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg)));
+
 				temp_byte2 = 0x00;
 				thisCPU->irq_pending = false;
+				thisCPU->irq_pin = true;
 			} else {
+				// push high byte of the pc+2 on the stack (note rti will not increase pc on return)
+				csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));
+				// push low byte of the pc+2 on the stack
+				csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
+
 				temp_byte2 = bFlagValue;
 			}
+
 			// push sr onto stack
 			temp_byte =	thisCPU->nFlag |
 						thisCPU->vFlag |
 						thisCPU->eFlag |
-						temp_byte2     |		// only bFlagValue when cause was brk instruction
+						temp_byte2     |	// pushes bFlagValue when cause was brk instruction
 						thisCPU->dFlag |
-						thisCPU->iFlag |        // yes, the i flag as it was during last instruction is pushed!
+						thisCPU->iFlag |    // yes, the i flag as it was during last instruction is pushed!
 						thisCPU->zFlag |
 						thisCPU->cFlag;
 			csg65ce02_push_byte(thisCPU, temp_byte);

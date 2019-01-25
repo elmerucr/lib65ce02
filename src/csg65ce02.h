@@ -42,7 +42,7 @@ typedef struct {
 	// for housekeeping of the execute function, taking care of re-entrance capabilities
 	unsigned int	cycle_count;						// sums up total number of cycles consumed by execute function
 	uint16_t		instruction_counter;
-	uint8_t			cycles_last_executed_instruction;	// necessary to decide if an irq will be acknowledged
+	uint8_t			cycles_last_executed_instruction;	// necessary to decide if an irq/nmi will be acknowledged
 } csg65ce02;
 
 enum addressing_modes {
