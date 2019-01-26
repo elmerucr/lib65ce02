@@ -122,12 +122,16 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 
 	// default states of irq and nmi pins
 	thisCPU->irq_pin = true;
-	thisCPU->nmi_pin = true;
 	thisCPU->irq_pending = false;
 
+	thisCPU->nmi_pin = true;
+	thisCPU->nmi_pin_last_state = true;
+	thisCPU->nmi_pending = false;
+
+	// load reset vector into pc
     pcReg = csg65ce02_read_byte(0xfffc) | (csg65ce02_read_byte(0xfffd) << 8);
 
-	thisCPU->cycles_last_executed_instruction = 1;	// safe value after reset, so irq can't be acknowledged
+	thisCPU->cycles_last_executed_instruction = 1;	// safe value after reset, so interrupts can't be acknowledged
 													// this is useful for setting up an extended stack (cle, see)
 }
 
@@ -184,9 +188,14 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	thisCPU->cycle_count = 0;
 	thisCPU->instruction_counter = 0;
 
-	// logic to initiate irq's or nmi's
+	// logic to initiate irq's
 	if(!(thisCPU->irq_pin) && !(thisCPU->iFlag) ) {
 		thisCPU->irq_pending = true;
+	}
+	// logic to initiate nmi's
+	if(!(thisCPU->nmi_pin) && thisCPU->nmi_pin_last_state) {	// state changed from 1 to 0, edge!
+		thisCPU->nmi_pending = true;
+		thisCPU->nmi_pin_last_state = false;					// this will avoid multiple nmi's
 	}
 
 	// actual instruction loop
