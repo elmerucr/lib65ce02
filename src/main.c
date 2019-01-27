@@ -33,7 +33,6 @@ int main() {
 	csg65ce02_ram[0xa901] = 0xda;		// phx
 	csg65ce02_ram[0xa902] = 0x5a;		// phy
 	csg65ce02_ram[0xa903] = 0xdb;		// phz
-
 	// discover the cause of irq, if brk instruction, then take into account signature byte!
 	// maybe better use the stack pointer relative addressing mode!!!
 	csg65ce02_ram[0xa904] = 0xba;		// tsx, load lsb of sp into x
@@ -46,18 +45,15 @@ int main() {
 	csg65ce02_ram[0xa90b] = 0x05;
 	csg65ce02_ram[0xa90c] = 0xb1;		// lda ($f0),y
 	csg65ce02_ram[0xa90d] = 0xf0;
-
 	// do your interrupt handling code here
-
 	// restore registers
 	csg65ce02_ram[0xa90e] = 0xfb;		// plz
 	csg65ce02_ram[0xa90f] = 0x7a;		// ply
 	csg65ce02_ram[0xa910] = 0xfa;		// plx
 	csg65ce02_ram[0xa911] = 0x68;		// pla
-
 	csg65ce02_ram[0xa912] = 0x40;		// rti
 
-	// program in memory
+	// main program in memory
 	csg65ce02_ram[0xc000] = 0x58;		// cli
 	csg65ce02_ram[0xc001] = 0x02;		// cle
 	csg65ce02_ram[0xc002] = 0xa9;		// lda #$34
@@ -77,6 +73,9 @@ int main() {
 	csg65ce02_ram[0xc010] = 0x02;
 	csg65ce02_ram[0xc011] = 0x00;		// brk #$01 (with signature byte #$01)
 	csg65ce02_ram[0xc012] = 0x01;
+	csg65ce02_ram[0xc013] = 0x4c;		// jmp $c002
+	csg65ce02_ram[0xc014] = 0x02;
+	csg65ce02_ram[0xc015] = 0xc0;
 
 
 	printf("\nemulate_65ce02 (C)2018 by elmerucr v20181218.0\n");
