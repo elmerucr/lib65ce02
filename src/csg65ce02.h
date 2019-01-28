@@ -109,7 +109,7 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles);
 
 // irq functions - simulate the irq pin on cpu - default state is '1' or 'true'
 // when it is 'pulled', state changes to false: interrupt is requested
-// iqr is state triggered
+// irq is state triggered
 // once the interrupt is acknowledged, the pin state automatically changes to true
 void csg65ce02_pull_irq_pin(csg65ce02 *thisCPU);
 void csg65ce02_release_irq_pin(csg65ce02 *thisCPU);
@@ -119,8 +119,7 @@ void csg65ce02_release_irq_pin(csg65ce02 *thisCPU);
 //void csg65ce02_trigger_nmi(csg65ce02 *thisCPU);
 
 
-//	Help functions for convenience
-//	It currently uses printf to dump the status of the cpu
+//	Functions for convenience
 void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string);
 void csg65ce02_dump_page(csg65ce02 *thisCPU, uint8_t pageNo);
 
