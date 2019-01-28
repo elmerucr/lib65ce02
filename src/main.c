@@ -78,7 +78,7 @@ int main() {
 	csg65ce02_ram[0xc015] = 0xc0;
 
 
-	printf("\nemulate_65ce02 (C)2018 by elmerucr v20181218.0\n");
+	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190128.0\n");
 	printf("type 'help' for a list of possible commands\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text_buffer to print strings

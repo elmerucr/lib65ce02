@@ -299,7 +299,7 @@ inline void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t op
 			break;
 		case ABSW :
 			*eal = op1 | (op2 << 8);
-			*eah = (uint16_t)(eal + 1);
+			*eah = (uint16_t)(*eal + 1);
 			break;
 		default :
 			break;
