@@ -14,7 +14,7 @@ const char *mnemonics[120] = {
 	"bbr 4,","bbr 5,","bbr 6,","bbr 7,","bbs 0,","bbs 1,","bbs 2,","bbs 3,","bbs 4,","bbs 5,",
 	"bbs 6,","bbs 7,","bcc ","bcs ","beq ","bit ","bmi ","bne ","bpl ","bra ",
 	"brk ","bsr ","bvc ","bvs ","clc ","cld ","cle ","cli ","clv ","cmp ",
-	"cpx ","cpy ","cpz ","dec ","dew ","dex ","dey ","dez ","eor ","inc ",
+	"cpx ","cpy ","cpz ","dea ","dew ","dex ","dey ","dez ","eor ","ina ",
 	"inw ","inx ","iny ","inz ","jmp ","jsr ","lda ","ldx ","ldy ","ldz ",
 	"lsr ","neg ","nop ","ora ","pha ","php ","phw ","phx ","phy ","phz ",
 	"pla ","plp ","plx ","ply ","plz ","rmb 0,","rmb 1,","rmb 2,","rmb 3,","rmb 4,",
