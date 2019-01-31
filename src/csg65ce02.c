@@ -466,6 +466,18 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
 			pcReg = effective_address_l;
 			break;
+		case 0x21 :								// and (bp,x)
+		case 0x25 :								// and bp
+		case 0x29 :								// and immediate
+		case 0x2d :								// and abs
+		case 0x31 :								// and (bp),y
+		case 0x32 :								// and (bp),z
+		case 0x35 :								// and bp,x
+		case 0x39 :								// and abs,y
+		case 0x3d :								// and abs,x
+			aReg = aReg & (csg65ce02_read_byte(effective_address_l));
+			setStatusForNZ(aReg);
+			break;
 		case 0x24 :								// bit bp
 		case 0x2c :								// bit abs
 		case 0x34 :								// bit bp,x
