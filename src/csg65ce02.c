@@ -456,7 +456,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x18 :								// clc instruction
 			thisCPU->cFlag = 0x00;
 			break;
-		case 0x1a :								// ina (inc a) instruction
+		case 0x1a :								// inc a instruction
 			aReg++;
 			setStatusForNZ(aReg);
 			break;
@@ -502,7 +502,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x38 :								// sec
 			thisCPU->cFlag = cFlagValue;
 			break;
-		case 0x3a :								// dea (dec a)
+		case 0x3a :								// dec a
 			aReg--;
 			setStatusForNZ(aReg);
 			break;
@@ -710,11 +710,11 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 				thisCPU->cFlag = 0;
 			}
 			break;
-		case 0xc8 :								// iny
+		case 0xc8 :								// inc y
 			yReg++;
 			setStatusForNZ(yReg);
 			break;
-		case 0xca :								// dex
+		case 0xca :								// dec x
 			xReg--;
 			setStatusForNZ(xReg);
 			break;
@@ -743,7 +743,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 				thisCPU->cFlag = 0;
 			}
 			break;
-		case 0xe8 :								// inx
+		case 0xe8 :								// inc x
 			xReg++;
 			setStatusForNZ(xReg);
 			break;
