@@ -743,6 +743,15 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 				thisCPU->cFlag = 0;
 			}
 			break;
+		case 0xe6 :								// inc bp
+		case 0xee :								// inc abs
+		case 0xf6 :								// inc bp,x
+		case 0xfe :								// inc abs,x
+			temp_byte = csg65ce02_read_byte(effective_address_l);
+			temp_byte++;
+			csg65ce02_write_byte(effective_address_l, temp_byte);
+			setStatusForNZ(temp_byte);
+			break;
 		case 0xe8 :								// inc x
 			xReg++;
 			setStatusForNZ(xReg);
