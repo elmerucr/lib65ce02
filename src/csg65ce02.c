@@ -521,7 +521,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			// note: rti doesn't need a correction of pc afterwards (unlike rts)
 			break;
 		case 0x42 :								// neg
-			aReg = 0xff - aReg;
+			aReg = ~aReg;
 			aReg++;
 			setStatusForNZ(aReg);
 			break;
