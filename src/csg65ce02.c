@@ -520,6 +520,11 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			pcReg = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
 			// note: rti doesn't need a correction of pc afterwards (unlike rts)
 			break;
+		case 0x42 :								// neg
+			aReg = 0xff - aReg;
+			aReg++;
+			setStatusForNZ(aReg);
+			break;
 		case 0x48 :								// pha
 			csg65ce02_push_byte(thisCPU, aReg);
 			break;
