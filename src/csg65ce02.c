@@ -520,6 +520,18 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			pcReg = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
 			// note: rti doesn't need a correction of pc afterwards (unlike rts)
 			break;
+		case 0x41 :								// eor (bp,x)
+		case 0x45 :								// eor bp
+		case 0x49 :								// eor imm
+		case 0x4d :								// eor abs
+		case 0x51 :								// eor (bp),y
+		case 0x52 :								// eor (bp),z
+		case 0x55 :								// eor bp,x
+		case 0x59 :								// eor abs,y
+		case 0x5d :								// eor abs,x
+			aReg = aReg ^ csg65ce02_read_byte(effective_address_l);
+			setStatusForNZ(aReg);
+			break;
 		case 0x42 :								// neg
 			aReg = ~aReg;
 			aReg++;
