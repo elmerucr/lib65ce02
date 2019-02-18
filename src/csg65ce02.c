@@ -606,8 +606,9 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			pcReg = effective_address_l;
 			break;
 		case 0x81 :								// sta (bp,x)
-		case 0x85 :								// sta (bp),y
+		case 0x85 :								// sta bp
 		case 0x8d :								// sta absolute
+		case 0x91 :								// sta (bp),y
 		case 0x99 :								// sta abs,y
 			csg65ce02_write_byte(effective_address_l, aReg);
 			break;
