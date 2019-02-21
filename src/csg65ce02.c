@@ -461,6 +461,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			setStatusForNZ(aReg);
 			break;
 		case 0x20 :								// jsr abs instruction (push last byte addr of instr
+		case 0x22 :								// jsr (abs)
 		case 0x23 :								// jsr (abs,x)
 			csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));
 			csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
@@ -584,6 +585,9 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			setStatusForNZ(aReg);
 			break;
 		case 0x64 :								// stz bp
+		case 0x74 :								// stz bp,x
+		case 0x9c :								// stz abs
+		case 0x9e :								// stz abs,x
 			csg65ce02_write_byte(effective_address_l, zReg);
 			break;
 		case 0x68 :								// pla
@@ -609,7 +613,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x85 :								// sta bp
 		case 0x8d :								// sta absolute
 		case 0x91 :								// sta (bp),y
+		case 0x92 :								// sta (bp),z
+		case 0x95 :								// sta bp,x
 		case 0x99 :								// sta abs,y
+		case 0x9d :								// sta abs,x
 			csg65ce02_write_byte(effective_address_l, aReg);
 			break;
 		case 0x84 :								// sty bp
@@ -624,8 +631,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x9b :								// stx absolute,y
 			csg65ce02_write_byte(effective_address_l, xReg);
 			break;
-
-		case 0x88 :								// dey
+		case 0x88 :								// dec y
 			yReg--;
 			setStatusForNZ(yReg);
 			break;
