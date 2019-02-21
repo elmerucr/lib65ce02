@@ -372,16 +372,13 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x03 :								// see
 			thisCPU->eFlag = eFlagValue;
 			break;
-		// case 0x04 :								// tsb bp
-		// case 0x0c :								// tsb abs
-		// 	temp_byte = aReg & memory[effective_address_l];
-		// 	if(temp_byte) {						// some of the bit locs of both values were set
-		// 		thisCPU->zFlag = 0x00;
-		// 	} else {
-		// 		thisCPU->zFlag = zFlagValue;
-		// 	}
-		// 	memory[effective_address_l] = aReg | memory[effective_address_l];
-		// 	break;
+		case 0x04 :								// tsb bp
+		case 0x0c :								// tsb abs
+			temp_byte = aReg;
+			temp_byte2 = csg65ce02_read_byte(effective_address_l);
+			setStatusForZ(temp_byte & temp_byte2);
+			csg65ce02_write_byte(effective_address_l, temp_byte | temp_byte2);
+			break;
 		case 0x07 :								// rmb 0,bp
 		case 0x17 :								// rmb 1,bp
 		case 0x27 :								// rmb 2,bp
