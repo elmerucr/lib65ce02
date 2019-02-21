@@ -453,6 +453,13 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 				pcReg = effective_address_l;
 			}
 			break;
+		case 0x14 :								// trb bp
+		case 0x1c :								// trb abs
+			temp_byte = aReg;
+			temp_byte2 = csg65ce02_read_byte(effective_address_l);
+			setStatusForZ((~temp_byte) & temp_byte2);
+			csg65ce02_write_byte(effective_address_l, temp_byte & temp_byte2);
+			break;
 		case 0x18 :								// clc instruction
 			thisCPU->cFlag = 0x00;
 			break;
