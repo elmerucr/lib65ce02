@@ -376,8 +376,8 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x0c :								// tsb abs
 			temp_byte = aReg;
 			temp_byte2 = csg65ce02_read_byte(effective_address_l);
-			setStatusForZ(temp_byte & temp_byte2);
 			csg65ce02_write_byte(effective_address_l, temp_byte | temp_byte2);
+			setStatusForZ(temp_byte & temp_byte2);
 			break;
 		case 0x07 :								// rmb 0,bp
 		case 0x17 :								// rmb 1,bp
@@ -454,8 +454,8 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x1c :								// trb abs
 			temp_byte = aReg;
 			temp_byte2 = csg65ce02_read_byte(effective_address_l);
-			setStatusForZ(temp_byte & temp_byte2);
 			csg65ce02_write_byte(effective_address_l, (~temp_byte) & temp_byte2);
+			setStatusForZ(temp_byte & temp_byte2);
 			break;
 		case 0x18 :								// clc instruction
 			thisCPU->cFlag = 0x00;
