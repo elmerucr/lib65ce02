@@ -460,6 +460,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			aReg++;
 			setStatusForNZ(aReg);
 			break;
+		case 0x1b :								// inc z instruction
+			zReg++;
+			setStatusForNZ(zReg);
+			break;
 		case 0x20 :								// jsr abs instruction (push last byte addr of instr
 		case 0x22 :								// jsr (abs)
 		case 0x23 :								// jsr (abs,x)
@@ -506,6 +510,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x3a :								// dec a
 			aReg--;
 			setStatusForNZ(aReg);
+			break;
+		case 0x3b :								// dec z
+			zReg--;
+			setStatusForNZ(zReg);
 			break;
 		case 0x40 :								// rti
 			temp_byte = csg65ce02_pull_byte(thisCPU);
@@ -605,6 +613,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			yReg = csg65ce02_pull_byte(thisCPU);
 			setStatusForNZ(yReg);
 			break;
+		case 0x7b :								// tba
+			aReg = bReg;
+			setStatusForNZ(aReg);
+			break;
 		case 0x80 :								// bra rel
 		case 0x83 :								// bra wrel
 			pcReg = effective_address_l;
@@ -635,6 +647,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			yReg--;
 			setStatusForNZ(yReg);
 			break;
+		case 0x8a :								// txa
+			aReg = xReg;
+			setStatusForNZ(aReg);
+			break;
 		case 0x90 :								// bcc rel
 		case 0x93 :								// bcc wrel
 			if(thisCPU->cFlag) {			// carry set, skip to next instruction
@@ -642,6 +658,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			} else {						// carry not set, take relative jump
 				pcReg = effective_address_l;
 			}
+			break;
+		case 0x98 :								// tya
+			aReg = yReg;
+			setStatusForNZ(aReg);
 			break;
 		case 0x9a :								// txs
 			spReg = (spReg & 0xff00) | xReg;
@@ -679,6 +699,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0xbb :								// ldz abs,x
 			zReg = csg65ce02_read_byte(effective_address_l);
 			setStatusForNZ(zReg);
+			break;
+		case 0xa8 :								// tay
+			yReg = aReg;
+			setStatusForNZ(yReg);
 			break;
 		case 0xaa :								// tax
 			xReg = aReg;
@@ -735,6 +759,15 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 				thisCPU->cFlag = 0;
 			}
 			break;
+		case 0xc6 :								// dec bp
+		case 0xce :								// dec abs
+		case 0xd6 :								// dec bp,x
+		case 0xde :								// dec abs,x
+			temp_byte = csg65ce02_read_byte(effective_address_l);
+			temp_byte--;
+			csg65ce02_write_byte(effective_address_l, temp_byte);
+			setStatusForNZ(temp_byte);
+			break;
 		case 0xc8 :								// inc y
 			yReg++;
 			setStatusForNZ(yReg);
@@ -750,6 +783,9 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			} else {						// not equal, take relative jump
 				pcReg = effective_address_l;
 			}
+			break;
+		case 0xd8 :								// cld
+			thisCPU->dFlag = 0x00;
 			break;
 		case 0xda :								// phx
 			csg65ce02_push_byte(thisCPU, xReg);
@@ -790,6 +826,9 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			} else {						// not equal, skip to next instruction
 				pcReg = (uint16_t)(pcReg+bytes_per_instruction[opcode]);
 			}
+			break;
+		case 0xf8 :								// sed
+			thisCPU->dFlag = dFlagValue;
 			break;
 		case 0xfa :								// plx
 			xReg = csg65ce02_pull_byte(thisCPU);
