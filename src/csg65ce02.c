@@ -403,6 +403,16 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 				csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) & (0xff - (0x01 << temp_byte)));
 			}
 			break;
+		case 0x08 :								// php (bFlag does not exist, and is not pushed)
+			temp_byte =	thisCPU->nFlag |
+						thisCPU->vFlag |
+						thisCPU->eFlag |
+						thisCPU->dFlag |
+						thisCPU->iFlag |
+						thisCPU->zFlag |
+						thisCPU->cFlag;
+			csg65ce02_push_byte(thisCPU, temp_byte);
+			break;
 		case 0x0b :								// tsy
 			yReg = (spReg & 0xff00) >> 8;
 			setStatusForNZ(yReg);
@@ -496,6 +506,17 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			setStatusForZ(temp_byte & aReg);
 			thisCPU->nFlag = temp_byte & nFlagValue;
 			thisCPU->vFlag = temp_byte & vFlagValue;
+			break;
+		case 0x28 :								// plp
+			temp_byte = csg65ce02_pull_byte(thisCPU);
+			thisCPU->nFlag = temp_byte & nFlagValue;
+			thisCPU->vFlag = temp_byte & vFlagValue;
+			thisCPU->eFlag = temp_byte & eFlagValue;
+					// no b flag to set of course...
+			thisCPU->dFlag = temp_byte & dFlagValue;
+			thisCPU->iFlag = temp_byte & iFlagValue;
+			thisCPU->zFlag = temp_byte & zFlagValue;
+			thisCPU->cFlag = temp_byte & cFlagValue;
 			break;
 		case 0x2b :								// tys
 			spReg = (spReg & 0x00ff) | (yReg << 8);
