@@ -379,6 +379,16 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			csg65ce02_write_byte(effective_address_l, temp_byte | temp_byte2);
 			setStatusForZ(temp_byte & temp_byte2);
 			break;
+		case 0x06 :								// asl bp
+		case 0x0e :								// asl abs
+		case 0x16 :								// asl bp,x
+		case 0x1e :								// asl abs,x
+			temp_byte = csg65ce02_read_byte(effective_address_l);
+			if(temp_byte & 0x80) {
+				thisCPU->cFlag = cFlagValue;
+			}
+			csg65ce02_write_byte(effective_address_l, (temp_byte << 1) );
+			break;
 		case 0x07 :								// rmb 0,bp
 		case 0x17 :								// rmb 1,bp
 		case 0x27 :								// rmb 2,bp
@@ -412,6 +422,13 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 						thisCPU->zFlag |
 						thisCPU->cFlag;
 			csg65ce02_push_byte(thisCPU, temp_byte);
+			break;
+		case 0x0a :								// asl accumulator
+			temp_byte = thisCPU->a;
+			if(temp_byte & 0x80) {
+				thisCPU->cFlag = cFlagValue;
+			}
+			thisCPU->a = (temp_byte << 1);
 			break;
 		case 0x0b :								// tsy
 			yReg = (spReg & 0xff00) >> 8;

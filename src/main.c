@@ -73,12 +73,15 @@ int main() {
 	csg65ce02_ram[0xc010] = 0x02;
 	csg65ce02_ram[0xc011] = 0x00;		// brk #$01 (with signature byte #$01)
 	csg65ce02_ram[0xc012] = 0x01;
-	csg65ce02_ram[0xc013] = 0x4c;		// jmp $c002
-	csg65ce02_ram[0xc014] = 0x02;
-	csg65ce02_ram[0xc015] = 0xc0;
+	csg65ce02_ram[0xc013] = 0xa9;		// lda #$85
+	csg65ce02_ram[0xc014] = 0x85;
+	csg65ce02_ram[0xc015] = 0x0a;		// asl
+	csg65ce02_ram[0xc016] = 0x4c;		// jmp $c002
+	csg65ce02_ram[0xc017] = 0x02;
+	csg65ce02_ram[0xc018] = 0xc0;
 
 
-	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190221.0\n");
+	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190223.0\n");
 	printf("type 'help' for a list of possible commands\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text_buffer to print strings
