@@ -388,6 +388,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 				thisCPU->cFlag = cFlagValue;
 			}
 			csg65ce02_write_byte(effective_address_l, (temp_byte << 1) );
+			setStatusForNZ((temp_byte << 1))
 			break;
 		case 0x07 :								// rmb 0,bp
 		case 0x17 :								// rmb 1,bp
@@ -429,6 +430,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 				thisCPU->cFlag = cFlagValue;
 			}
 			thisCPU->a = (temp_byte << 1);
+			setStatusForNZ(thisCPU->a);
 			break;
 		case 0x0b :								// tsy
 			yReg = (spReg & 0xff00) >> 8;
