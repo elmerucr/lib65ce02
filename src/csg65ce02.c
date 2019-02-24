@@ -530,7 +530,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			temp_byte = csg65ce02_pull_byte(thisCPU);
 			thisCPU->nFlag = temp_byte & nFlagValue;
 			thisCPU->vFlag = temp_byte & vFlagValue;
-					// no e flag, only to be changed by cle and see
+					// no e flag, only to be changed by cle and see instructions
 					// no b flag of course...
 			thisCPU->dFlag = temp_byte & dFlagValue;
 			thisCPU->iFlag = temp_byte & iFlagValue;
