@@ -414,10 +414,11 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 				csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) & (0xff - (0x01 << temp_byte)));
 			}
 			break;
-		case 0x08 :								// php (bFlag does not exist, and is not pushed)
+		case 0x08 :								// php (bFlag does not exist, but it will push the value anyway!)
 			temp_byte =	thisCPU->nFlag |
 						thisCPU->vFlag |
 						thisCPU->eFlag |
+						bFlagValue     |
 						thisCPU->dFlag |
 						thisCPU->iFlag |
 						thisCPU->zFlag |
