@@ -13,16 +13,16 @@ const char *mnemonics[122] = {
 	"adc ","and ","asl ","asr ","asw ","aug ","bbr 0,","bbr 1,","bbr 2,","bbr 3,",
 	"bbr 4,","bbr 5,","bbr 6,","bbr 7,","bbs 0,","bbs 1,","bbs 2,","bbs 3,","bbs 4,","bbs 5,",
 	"bbs 6,","bbs 7,","bcc ","bcs ","beq ","bit ","bmi ","bne ","bpl ","bra ",
-	"brk ","bsr ","bvc ","bvs ","clc ","cld ","cle ","cli ","clv ","cmp ",
-	"cpx ","cpy ","cpz ","dec ","dec a ","dec x ","dec y ","dec z ","dew ","eor ",
-	"inc ","inc a ","inc x ","inc y ","inc z ","inw ","jmp ","jsr ","lda ","ldx ",
-	"ldy ","ldz ","lsr ","neg ","nop ","ora ","pha ","php ","phw ","phx ",
-	"phy ","phz ","pla ","plp ","plx ","ply ","plz ","rmb 0,","rmb 1,","rmb 2,",
-	"rmb 3,","rmb 4,","rmb 5,","rmb 6,","rmb 7,","rol ","ror ","row ","rti ","rtn ",
-	"rts ","sbc ","sec ","sed ","see ","sei ","smb 0,","smb 1,","smb 2,","smb 3,",
-	"smb 4,","smb 5,","smb 6,","smb 7,","sta ","stx ","sty ","stz ","tab ","tax ",
-	"tay ","taz ","tba ","trb ","tsb ","tsx ","tsy ","txa ","txs ","tya ",
-	"tys ","tza "
+	"brk ","bsr ","bvc ","bvs ","clc","cld","cle","cli","clv","cmp ",
+	"cpx ","cpy ","cpz ","dec ","dec a","dec x","dec y","dec z","dew ","eor ",
+	"inc ","inc a","inc x","inc y","inc z","inw ","jmp ","jsr ","lda ","ldx ",
+	"ldy ","ldz ","lsr ","neg ","nop","ora ","pha","php","phw ","phx",
+	"phy","phz","pla","plp","plx","ply","plz","rmb 0,","rmb 1,","rmb 2,",
+	"rmb 3,","rmb 4,","rmb 5,","rmb 6,","rmb 7,","rol ","ror ","row ","rti","rtn ",
+	"rts","sbc ","sec","sed","see","sei","smb 0,","smb 1,","smb 2,","smb 3,",
+	"smb 4,","smb 5,","smb 6,","smb 7,","sta ","stx ","sty ","stz ","tab","tax",
+	"tay","taz","tba","trb ","tsb ","tsx","tsy","txa","txs","tya",
+	"tys","tza"
 };
 
 const int mnemonic_per_instruction[256] = {
