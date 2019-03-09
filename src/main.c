@@ -146,6 +146,7 @@ int main() {
 			uint16_t start = cpu0.pc;
 			for(int i=0; i<8; i++) {
 				start += csg65ce02_dasm(start, text_buffer, TEXT_BUFFER_SIZE);
+				putchar(',');
 				puts(text_buffer);
 			}
 		} else if( strcmp(token0, "exit") == 0 ) {
