@@ -899,6 +899,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 void csg65ce02_pull_irq_pin(csg65ce02 *thisCPU) {
 	thisCPU->irq_pin = false;
 }
+
 void csg65ce02_release_irq_pin(csg65ce02 *thisCPU) {
 	thisCPU->irq_pin = true;
 }
