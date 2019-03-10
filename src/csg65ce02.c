@@ -125,7 +125,7 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 	thisCPU->irq_pending = false;
 
 	thisCPU->nmi_pin = true;
-	thisCPU->nmi_pin_last_state = true;
+	thisCPU->nmi_pin_previous_state = true;
 	thisCPU->nmi_pending = false;
 
 	// load reset vector into pc
@@ -189,13 +189,21 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	thisCPU->instruction_counter = 0;
 
 	// logic to initiate irq's
-	if(!(thisCPU->irq_pin) && !(thisCPU->iFlag) ) {
-		thisCPU->irq_pending = true;
+	if(!(thisCPU->irq_pin)) {				// is it pulled?
+		if(thisCPU->iFlag) {
+			thisCPU->irq_pending = false;	// currently i mask, do not start irq procedure
+		} else {
+			thisCPU->irq_pending = true;	// no i mask, start irq procedure
+		}
 	}
+	// if(!(thisCPU->irq_pin) && !(thisCPU->iFlag) ) {
+	// 	thisCPU->irq_pending = true;
+	// }
+
 	// logic to initiate nmi's
-	if(!(thisCPU->nmi_pin) && thisCPU->nmi_pin_last_state) {	// state changed from 1 to 0, edge!
+	if(!(thisCPU->nmi_pin) && thisCPU->nmi_pin_previous_state) {	// state changed from 1 to 0, edge!
 		thisCPU->nmi_pending = true;
-		thisCPU->nmi_pin_last_state = false;					// this will avoid multiple nmi's
+		thisCPU->nmi_pin_previous_state = false;					// this will avoid multiple nmi's
 	}
 
 	// actual instruction loop
@@ -324,7 +332,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 
 				temp_byte2 = 0x00;
 				thisCPU->irq_pending = false;
-				thisCPU->irq_pin = true;
+				// thisCPU->irq_pin = true;
 			} else {
 				// push high byte of the pc+2 on the stack (note rti will not increase pc on return)
 				csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));

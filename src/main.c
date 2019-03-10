@@ -34,7 +34,7 @@ int main() {
 	csg65ce02_ram[0xa902] = 0x5a;		// phy
 	csg65ce02_ram[0xa903] = 0xdb;		// phz
 	// discover the cause of irq, if brk instruction, then take into account signature byte!
-	// maybe better use the stack pointer relative addressing mode!!!
+	// maybe better to use the stack pointer relative addressing mode!?
 	csg65ce02_ram[0xa904] = 0xba;		// tsx, load lsb of sp into x
 	csg65ce02_ram[0xa905] = 0x0b;		// tsy, load msb of sp into y
 	csg65ce02_ram[0xa906] = 0x86;		// stx $f0
@@ -81,7 +81,7 @@ int main() {
 	csg65ce02_ram[0xc018] = 0xc0;
 
 
-	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190223.0\n");
+	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190310.0\n");
 	printf("type 'help' for a list of possible commands\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text_buffer to print strings

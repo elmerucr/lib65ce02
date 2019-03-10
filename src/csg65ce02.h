@@ -33,7 +33,7 @@ typedef struct {
 	// irq and nmi emulation
 	bool irq_pin;
 	bool nmi_pin;
-	bool nmi_pin_last_state;	// extra boolean value to allow edge triggering
+	bool nmi_pin_previous_state;	// extra boolean value to allow edge triggering
 	bool irq_pending;
 	bool nmi_pending;
 
