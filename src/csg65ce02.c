@@ -761,6 +761,9 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 				pcReg = (uint16_t)(pcReg+bytes_per_instruction[opcode]);
 			}
 			break;
+		case 0xb8 :								// clv instruction
+			thisCPU->vFlag = 0x00;
+			break;
 		case 0xba :								// tsx instruction
 			xReg = (spReg & 0x00ff);
 			setStatusForNZ(xReg);
