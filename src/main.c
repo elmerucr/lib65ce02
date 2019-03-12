@@ -81,7 +81,7 @@ int main() {
 	csg65ce02_ram[0xc018] = 0xc0;
 
 
-	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190310.0\n");
+	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190312.0\n");
 	printf("type 'help' for a list of possible commands\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text_buffer to print strings
@@ -164,13 +164,21 @@ int main() {
 			printf("help   - Prints this help message\n");
 			printf("reset  - Reset 65ce02\n\n");
 			//printf("Type 'help <command name>' for more detailed info\n\n");
-		} else if( strcmp(token0, "i") == 0) {
-			if(cpu0.irq_pin == true) {
-				csg65ce02_pull_irq_pin(&cpu0);
-				printf("irq pin pulled to 0\n");
+		} else if( strcmp(token0, "irq") == 0) {
+			if( token1 == NULL ) {
+				printf("Current status of irq pin is %1u\n", cpu0.irq_pin ? 1 : 0);
 			} else {
-				csg65ce02_release_irq_pin(&cpu0);
-				printf("irq pin released to 1\n");
+				unsigned int i;
+				sscanf( token1, "%1u", &i);
+				if( i == 0 ) {
+					csg65ce02_set_irq(&cpu0, false);
+					printf("Current status of irq pin is now %1u\n", cpu0.irq_pin ? 1 : 0);
+				} else if( i == 1) {
+					csg65ce02_set_irq(&cpu0, true);
+					printf("Current status of irq pin is now %1u\n", cpu0.irq_pin ? 1 : 0);
+				} else {
+					printf("Error: argument must be 0 or 1\n");
+				}
 			}
 		} else if( strcmp(token0, "n") == 0) {
 			unsigned int n = 0;

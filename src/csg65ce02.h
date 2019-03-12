@@ -111,13 +111,11 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles);
 // when it is 'pulled', state changes to false: interrupt is requested
 // irq is state triggered
 // once the interrupt is acknowledged, the pin state automatically changes to true
-void csg65ce02_pull_irq_pin(csg65ce02 *thisCPU);
-void csg65ce02_release_irq_pin(csg65ce02 *thisCPU);
+void csg65ce02_set_irq(csg65ce02 *thisCPU, bool level);
 
 // nmi functions
-// must always be acknowledged
-//void csg65ce02_trigger_nmi(csg65ce02 *thisCPU);
-
+// edge triggered and must always be acknowledged
+void csg65ce02_set_nmi(csg65ce02 *thisCPU, bool level);
 
 //	Functions for convenience
 void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string);

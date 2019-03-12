@@ -196,9 +196,6 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 			thisCPU->irq_pending = true;	// no i mask, start irq procedure
 		}
 	}
-	// if(!(thisCPU->irq_pin) && !(thisCPU->iFlag) ) {
-	// 	thisCPU->irq_pending = true;
-	// }
 
 	// logic to initiate nmi's
 	if(!(thisCPU->nmi_pin) && thisCPU->nmi_pin_previous_state) {	// state changed from 1 to 0, edge!
@@ -904,12 +901,8 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 	}
 }
 
-void csg65ce02_pull_irq_pin(csg65ce02 *thisCPU) {
-	thisCPU->irq_pin = false;
-}
-
-void csg65ce02_release_irq_pin(csg65ce02 *thisCPU) {
-	thisCPU->irq_pin = true;
+void csg65ce02_set_irq(csg65ce02 *thisCPU, bool level) {
+	thisCPU->irq_pin = level;
 }
 
 void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string) {
