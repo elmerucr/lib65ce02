@@ -189,7 +189,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	thisCPU->instruction_counter = 0;
 
 	// logic to initiate irq's
-	// this must be checked before each new instruction because a change of the irq flag may cause an immediate interrupt
+	// please note this is not checked before each instruction (like in a real situation)
+	// it will probably suffice for the moment being...
 	if(!(thisCPU->irq_pin)) {				// is it pulled down?
 		if(thisCPU->iFlag) {
 			thisCPU->irq_pending = false;	// currently i mask, do not start irq procedure

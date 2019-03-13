@@ -172,10 +172,10 @@ int main() {
 				sscanf( token1, "%1u", &i);
 				if( i == 0 ) {
 					csg65ce02_set_irq(&cpu0, false);
-					printf("Current status of irq pin is now %1u\n", cpu0.irq_pin ? 1 : 0);
+					printf("Current status of irq pin is %1u\n", cpu0.irq_pin ? 1 : 0);
 				} else if( i == 1) {
 					csg65ce02_set_irq(&cpu0, true);
-					printf("Current status of irq pin is now %1u\n", cpu0.irq_pin ? 1 : 0);
+					printf("Current status of irq pin is %1u\n", cpu0.irq_pin ? 1 : 0);
 				} else {
 					printf("Error: argument must be 0 or 1\n");
 				}
