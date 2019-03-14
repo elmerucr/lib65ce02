@@ -47,6 +47,12 @@ typedef struct {
 	uint8_t			cycles_last_executed_instruction;	// necessary to decide if an irq/nmi will be acknowledged
 } csg65ce02;
 
+enum execution_mode {
+	NORMAL,
+	ENTERING_IRQ,
+	ENTERING_NMI
+};
+
 enum addressing_modes {
 	IMM,
 	ABS,

@@ -188,25 +188,22 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	thisCPU->cycle_count = 0;
 	thisCPU->instruction_counter = 0;
 
-	// logic to initiate irq's
-	// please note this is not checked before each instruction (like in a real situation)
-	// it will probably suffice for the moment being...
-	if(!(thisCPU->irq_pin)) {				// is it pulled down?
-		if(thisCPU->iFlag) {
-			thisCPU->irq_pending = false;	// currently i mask, do not start irq procedure
-		} else {
-			thisCPU->irq_pending = true;	// no i mask, start irq procedure
-		}
-	}
+	// // logic to initiate nmi's
+	// if(!(thisCPU->nmi_pin) && thisCPU->nmi_pin_previous_state) {	// state changed from 1 to 0, edge!
+	// 	thisCPU->nmi_pending = true;
+	// 	thisCPU->nmi_pin_previous_state = false;					// this will avoid multiple nmi's
+	// }
 
-	// logic to initiate nmi's
-	if(!(thisCPU->nmi_pin) && thisCPU->nmi_pin_previous_state) {	// state changed from 1 to 0, edge!
-		thisCPU->nmi_pending = true;
-		thisCPU->nmi_pin_previous_state = false;					// this will avoid multiple nmi's
-	}
-
-	// actual instruction loop
+	// actual instruction loop, before each instruction, exception conditions are checked
 	do {
+		if(!(thisCPU->irq_pin)) {				// is it pulled down?
+			if(thisCPU->iFlag) {
+				thisCPU->irq_pending = false;	// currently i mask, do not start irq procedure
+			} else {
+				thisCPU->irq_pending = true;	// no i mask, start irq procedure
+			}
+		}
+
 		current_opcode = thisCPU->irq_pending ? 0x00 : csg65ce02_read_byte(pcReg);
 
 		csg65ce02_calculate_effective_address(thisCPU, current_opcode, &effective_address_l, &effective_address_h);
@@ -218,7 +215,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 
 		// increase pc only if the instruction does not actively change the pc by itself
 		if(!modify_pc_per_instruction[current_opcode]) {
-			pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
+			//pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
+			pcReg += bytes_per_instruction[current_opcode];
 		}
 		thisCPU->instruction_counter++;
 	// Three conditions must be met to keep running:
