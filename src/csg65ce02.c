@@ -192,18 +192,24 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 
 	// actual instruction loop
 	do {
-		// check exception conditions
-		if(!(thisCPU->cycles_last_executed_instruction == 1)) { // if last instr took 1 cycle, skip exceptions
-			if(!(thisCPU->irq_pin)) {				// is it pulled down?
-				if(thisCPU->iFlag) {
-					thisCPU->irq_pending = false;	// currently i mask, do not start irq procedure
-				} else {
-					thisCPU->irq_pending = true;	// no i mask, start irq procedure
+		// check exception conditions, now it is an extended if else structure. MUST BE REPLACED BY A TABLE!
+		if(thisCPU->cycles_last_executed_instruction == 1) {
+			thisCPU->exception_type = NONE;			// if last instr took 1 cycle, skip all exceptions
+		} else {
+			if(thisCPU->irq_pin) {						// irq pin is up
+				thisCPU->exception_type = NONE;
+			} else {									// irq pin is down
+				if(thisCPU->iFlag) {						// irq masked by flag
+					thisCPU->exception_type = NONE;
+					thisCPU->irq_pending = false;
+				} else {									// irq not masked by flag
+					thisCPU->exception_type = IRQ;
+					thisCPU->irq_pending = true;
 				}
 			}
 		}
 
-		current_opcode = thisCPU->irq_pending ? 0x00 : csg65ce02_read_byte(pcReg);
+		current_opcode = thisCPU->exception_type ? 0x00 : csg65ce02_read_byte(pcReg);
 
 		csg65ce02_calculate_effective_address(thisCPU, current_opcode, &effective_address_l, &effective_address_h);
 
