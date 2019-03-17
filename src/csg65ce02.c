@@ -187,21 +187,26 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 
 	// actual instruction loop
 	do {
-		// check exception conditions, now it is an extended if else structure. MUST BE REPLACED BY A TABLE!
-		if(thisCPU->cycles_last_executed_instruction == 1) {
-			thisCPU->exception_type = NONE;			// if last instr took 1 cycle, skip all exceptions
-		} else {
-			if(thisCPU->irq_pin) {						// irq pin is up
-				thisCPU->exception_type = NONE;
-			} else {									// irq pin is down
-				if(thisCPU->iFlag) {						// irq masked by flag
-					thisCPU->exception_type = NONE;
-				} else {									// irq not masked by flag
-					thisCPU->exception_type = IRQ;
-				}
-			}
-		}
+		// check exception conditions, now it is an extended if else structure. MIGHT BE REPLACED BY A TABLE!
         
+		if(thisCPU->cycles_last_executed_instruction == 1) {    // last instr took 1 cycle, skip all exceptions
+			thisCPU->exception_type = NONE;
+		} else {                                                // last instr took more than 1 cycle
+            if((thisCPU->nmi_pin == false) && (thisCPU->nmi_pin_previous_state == true)) {
+                thisCPU->exception_type = NMI;
+            } else {
+                if(thisCPU->irq_pin) {						            // irq pin is up
+                    thisCPU->exception_type = NONE;
+                } else {									            // irq pin is down
+                    if(thisCPU->iFlag) {						            // irq masked by flag
+                        thisCPU->exception_type = NONE;
+                    } else {									            // irq not masked by flag
+                        thisCPU->exception_type = IRQ;
+                    }
+                }
+            }
+        }
+        // SOMETHING GOES HORRIBLY WRONG HERE!!! CHECK!!!
         // update nmi pin previous state to current state
         thisCPU->nmi_pin_previous_state = thisCPU->nmi_pin;
 
