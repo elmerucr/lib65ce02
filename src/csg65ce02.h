@@ -41,8 +41,6 @@ typedef struct {
 	bool irq_pin;
 	bool nmi_pin;
 	bool nmi_pin_previous_state;	// extra boolean value to allow edge triggering
-	bool irq_pending;
-	bool nmi_pending;
 
 	// info and pointer to a 64k array with breakpoint information
 	bool		breakpoints_active;

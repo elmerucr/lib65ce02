@@ -57,7 +57,7 @@ const uint8_t cycles_per_instruction[256] = {
 	5,5,7,7,4,3,4,4,3,2,1,1,5,4,5,4,
 	2,5,5,3,4,3,4,4,1,4,1,1,5,4,5,4,
 	5,5,2,2,4,3,4,4,3,2,1,1,3,4,5,4,
-	2,5,5,3,4,3,4,4,1,4,3,1,4,4,5,4,
+	2,5,5,3,4,3,4,4,2,4,3,1,4,4,5,4,
 	4,5,7,5,3,3,4,4,3,2,1,1,5,4,5,4,
 	2,5,5,3,3,3,4,4,2,4,3,1,5,4,5,4,
 	2,5,6,3,3,3,3,4,1,2,1,4,4,4,4,4,
@@ -122,13 +122,9 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 
 	// default states of irq and nmi pins
 	thisCPU->exception_type = NONE;
-
 	thisCPU->irq_pin = true;
-	thisCPU->irq_pending = false;
-
 	thisCPU->nmi_pin = true;
 	thisCPU->nmi_pin_previous_state = true;
-	thisCPU->nmi_pending = false;
 
 	// load reset vector into pc
     pcReg = csg65ce02_read_byte(0xfffc) | (csg65ce02_read_byte(0xfffd) << 8);
@@ -201,10 +197,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 			} else {									// irq pin is down
 				if(thisCPU->iFlag) {						// irq masked by flag
 					thisCPU->exception_type = NONE;
-					thisCPU->irq_pending = false;
 				} else {									// irq not masked by flag
 					thisCPU->exception_type = IRQ;
-					thisCPU->irq_pending = true;
 				}
 			}
 		}
@@ -220,7 +214,6 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 
 		// increase pc only if the instruction does not actively change the pc by itself
 		if(!modify_pc_per_instruction[current_opcode]) {
-			//pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
 			pcReg += bytes_per_instruction[current_opcode];
 		}
 		thisCPU->instruction_counter++;		// keep or remove???
@@ -327,21 +320,25 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 
 	switch( opcode ) {
 		case 0x00 :								// brk instruction (or irq/nmi)
-			if(thisCPU->irq_pending) {
-				// push high byte of the pc on the stack (note rti will not increase pc on return)
-				csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg)));
-				// push low byte of the pc on the stack
-				csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg)));
-
-				temp_byte2 = 0x00;
-				thisCPU->irq_pending = false;	// ugly hack, needs be removed if exception conditions table is defined
-			} else {
-				// push high byte of the pc+2 on the stack (note rti will not increase pc on return)
-				csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));
-				// push low byte of the pc+2 on the stack
-				csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
-
-				temp_byte2 = bFlagValue;
+			switch(thisCPU->exception_type) {
+				case NONE:
+					// push high byte of the pc+2 on the stack (note rti will not increase pc on return)
+					csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));
+					// push low byte of the pc+2 on the stack
+					csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
+					// prepare break flag to be pushed onto stack
+					temp_byte2 = bFlagValue;
+					break;
+				case IRQ:
+					// push high byte of the pc on the stack (note rti will not increase pc on return)
+					csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg)));
+					// push low byte of the pc on the stack
+					csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg)));
+					// prepare EMPTY break flag to be pushed onto stack
+					temp_byte2 = 0x00;
+					break;
+				case NMI:
+					break;
 			}
 
 			// push sr onto stack
