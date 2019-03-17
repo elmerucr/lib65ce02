@@ -184,7 +184,6 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	uint16_t effective_address_h;		// high byte address of the effective address (for IMMW / ABSW addressing)
 
 	thisCPU->cycle_count = 0;
-	thisCPU->instruction_counter = 0;	// keep or remove???
 
 	// actual instruction loop
 	do {
@@ -216,7 +215,6 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 		if(!modify_pc_per_instruction[current_opcode]) {
 			pcReg += bytes_per_instruction[current_opcode];
 		}
-		thisCPU->instruction_counter++;		// keep or remove???
 
 	// Three conditions must be met to keep running:
 	//    (1) enough cycles?
@@ -354,7 +352,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			// set interrupt disable flag
 			thisCPU->iFlag = iFlagValue;
 
-			// load pc vector for irq/brk
+			// load correct excpetion vector for brk/irq/nmi
 			thisCPU->pc = csg65ce02_read_byte(0xfffe) | (csg65ce02_read_byte(0xffff) << 8);
 
 			// clear the decimal flag (it will be restored by the rti instruction) (Eyes, p338)

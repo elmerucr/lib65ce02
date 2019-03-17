@@ -47,9 +47,8 @@ typedef struct {
 	bool		*breakpoint_array;
 
 	// for housekeeping of the execute function, taking care of re-entrance capabilities
-	unsigned int	cycle_count;						// sums up total number of cycles consumed by execute function
-	uint16_t		instruction_counter;
-	uint8_t			cycles_last_executed_instruction;	// necessary to decide if an irq/nmi will be acknowledged
+	unsigned int	cycle_count;						// sums up total no of cycl. consumed by exec function
+	uint8_t			cycles_last_executed_instruction;	// to decide if irq/nmi will be acknowledged
 } csg65ce02;
 
 enum addressing_modes {

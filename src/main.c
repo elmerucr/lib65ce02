@@ -188,7 +188,7 @@ int main() {
 				sscanf( token1, "%i", &n);
 			}
 			int i = csg65ce02_execute(&cpu0,n);
-			printf("cpu ran %i cycles of %i demanded for %i instruction(s)\n\n",i,n,cpu0.instruction_counter);
+			printf("cpu ran %i cycles of %i demanded\n\n",i,n);
 			csg65ce02_dump_status(&cpu0, large_text_buffer);
 			printf("%s\n\n", large_text_buffer);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
