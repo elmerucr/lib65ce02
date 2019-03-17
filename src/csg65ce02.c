@@ -121,6 +121,8 @@ void csg65ce02_reset(csg65ce02 *thisCPU) {
 	thisCPU->cFlag = 0x00;
 
 	// default states of irq and nmi pins
+	thisCPU->exception_type = NONE;
+
 	thisCPU->irq_pin = true;
 	thisCPU->irq_pending = false;
 
@@ -186,21 +188,18 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 	uint16_t effective_address_h;		// high byte address of the effective address (for IMMW / ABSW addressing)
 
 	thisCPU->cycle_count = 0;
-	thisCPU->instruction_counter = 0;
+	thisCPU->instruction_counter = 0;	// keep or remove???
 
-	// // logic to initiate nmi's
-	// if(!(thisCPU->nmi_pin) && thisCPU->nmi_pin_previous_state) {	// state changed from 1 to 0, edge!
-	// 	thisCPU->nmi_pending = true;
-	// 	thisCPU->nmi_pin_previous_state = false;					// this will avoid multiple nmi's
-	// }
-
-	// actual instruction loop, before each instruction, exception conditions are checked
+	// actual instruction loop
 	do {
-		if(!(thisCPU->irq_pin)) {				// is it pulled down?
-			if(thisCPU->iFlag) {
-				thisCPU->irq_pending = false;	// currently i mask, do not start irq procedure
-			} else {
-				thisCPU->irq_pending = true;	// no i mask, start irq procedure
+		// check exception conditions
+		if(!(thisCPU->cycles_last_executed_instruction == 1)) { // if last instr took 1 cycle, skip exceptions
+			if(!(thisCPU->irq_pin)) {				// is it pulled down?
+				if(thisCPU->iFlag) {
+					thisCPU->irq_pending = false;	// currently i mask, do not start irq procedure
+				} else {
+					thisCPU->irq_pending = true;	// no i mask, start irq procedure
+				}
 			}
 		}
 
@@ -218,7 +217,8 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 			//pcReg = (uint16_t)(pcReg+bytes_per_instruction[current_opcode]);
 			pcReg += bytes_per_instruction[current_opcode];
 		}
-		thisCPU->instruction_counter++;
+		thisCPU->instruction_counter++;		// keep or remove???
+
 	// Three conditions must be met to keep running:
 	//    (1) enough cycles?
 	//    (2) no breakpoint?
@@ -328,8 +328,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 				csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg)));
 
 				temp_byte2 = 0x00;
-				thisCPU->irq_pending = false;
-				// thisCPU->irq_pin = true;
+				thisCPU->irq_pending = false;	// ugly hack, needs be removed if exception conditions table is defined
 			} else {
 				// push high byte of the pc+2 on the stack (note rti will not increase pc on return)
 				csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg+2)));

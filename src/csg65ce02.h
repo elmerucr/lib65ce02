@@ -9,6 +9,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+enum exception_types {
+	NONE,
+	IRQ,
+	NMI
+};
+
 typedef struct {
 	uint16_t	pc;			// program counter
 	uint8_t		a;			// accumulator
@@ -30,7 +36,8 @@ typedef struct {
 	uint8_t 	zFlag;		// Zero
 	uint8_t		cFlag;		// Carry
 
-	// irq and nmi emulation
+	// irq and nmi (exception things)
+	enum exception_types exception_type;
 	bool irq_pin;
 	bool nmi_pin;
 	bool nmi_pin_previous_state;	// extra boolean value to allow edge triggering
@@ -46,12 +53,6 @@ typedef struct {
 	uint16_t		instruction_counter;
 	uint8_t			cycles_last_executed_instruction;	// necessary to decide if an irq/nmi will be acknowledged
 } csg65ce02;
-
-enum execution_mode {
-	NORMAL,
-	ENTERING_IRQ,
-	ENTERING_NMI
-};
 
 enum addressing_modes {
 	IMM,

@@ -21,8 +21,8 @@ int main() {
 	csg65ce02_mmu_init();		// first, initialize memory management unit and memory
 
 	// set nmi, reset & break vectors
-	csg65ce02_ram[0xfffa] = 0x00;		// nmi $2000
-	csg65ce02_ram[0xfffb] = 0x20;
+	csg65ce02_ram[0xfffa] = 0x00;		// nmi $a800
+	csg65ce02_ram[0xfffb] = 0xa8;
 	csg65ce02_ram[0xfffc] = 0x00;		// reset $c000
 	csg65ce02_ram[0xfffd] = 0xc0;
 	csg65ce02_ram[0xfffe] = 0x00;		// brk $a900
@@ -58,8 +58,8 @@ int main() {
 	csg65ce02_ram[0xc001] = 0x02;		// cle
 	csg65ce02_ram[0xc002] = 0xa9;		// lda #$34
 	csg65ce02_ram[0xc003] = 0x34;
-	csg65ce02_ram[0xc004] = 0x48;		// pha
-	csg65ce02_ram[0xc005] = 0x48;		// pha
+	csg65ce02_ram[0xc004] = 0x8a;		// txa
+	csg65ce02_ram[0xc005] = 0xaa;		// tax
 	csg65ce02_ram[0xc006] = 0x48;		// pha
 	csg65ce02_ram[0xc007] = 0xea;		// nop
 	csg65ce02_ram[0xc008] = 0xf4;		// phw #$e432
@@ -81,7 +81,7 @@ int main() {
 	csg65ce02_ram[0xc018] = 0xc0;
 
 
-	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190312.0\n");
+	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190317.0\n");
 	printf("type 'help' for a list of possible commands\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text_buffer to print strings
