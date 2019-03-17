@@ -10,9 +10,9 @@
 #include <stdbool.h>
 
 enum exception_types {
-	NONE,
-	IRQ,
-	NMI
+	NONE = 0,
+	IRQ = 1,
+	NMI = 2
 };
 
 typedef struct {

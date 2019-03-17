@@ -201,6 +201,9 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 				}
 			}
 		}
+        
+        // update nmi pin previous state to current state
+        thisCPU->nmi_pin_previous_state = thisCPU->nmi_pin;
 
 		current_opcode = thisCPU->exception_type ? 0x00 : csg65ce02_read_byte(pcReg);
 
@@ -216,10 +219,10 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 			pcReg += bytes_per_instruction[current_opcode];
 		}
 
-	// Three conditions must be met to keep running:
-	//    (1) enough cycles?
-	//    (2) no breakpoint?
-	//    (3) breakpoints activated?
+        // Three conditions must be met to keep running:
+        //    (1) enough cycles?
+        //    (2) no breakpoint?
+        //    (3) breakpoints activated?
     } while(	(thisCPU->cycle_count < no_cycles) &&
 				!((thisCPU->breakpoint_array[pcReg] == true) && thisCPU->breakpoints_active) );
 
