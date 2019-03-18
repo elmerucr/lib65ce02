@@ -15,7 +15,7 @@ enum exception_types {
 	NMI = 2
 };
 
-typedef struct {
+typedef struct _csg65ce02 {
 	uint16_t	pc;			// program counter
 	uint8_t		a;			// accumulator
 	uint8_t		x;			// x register
