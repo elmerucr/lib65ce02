@@ -187,10 +187,12 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
 
 	// actual instruction loop
 	do {
-		// check exception conditions, now it is an extended if else structure. MIGHT BE REPLACED BY A TABLE!
-        
+		// check exception conditions
+		// MIGHT BE REPLACED BY A TABLE IN THE FUTURE
 		if(thisCPU->cycles_last_executed_instruction == 1) {    // last instr took 1 cycle, skip all exceptions
 			thisCPU->exception_type = NONE;
+			// note that nmi previous state is not updated here
+			// if we would do so, the nmi wouldn't be catched after the first non-1-cycle instruction
 		} else {                                                // last instr took more than 1 cycle
             if((thisCPU->nmi_pin == false) && (thisCPU->nmi_pin_previous_state == true)) {
                 thisCPU->exception_type = NMI;
@@ -205,10 +207,9 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles) {
                     }
                 }
             }
+			// update nmi pin previous state to current state
+        	thisCPU->nmi_pin_previous_state = thisCPU->nmi_pin;
         }
-        // SOMETHING GOES HORRIBLY WRONG HERE!!! CHECK!!!
-        // update nmi pin previous state to current state
-        thisCPU->nmi_pin_previous_state = thisCPU->nmi_pin;
 
 		current_opcode = thisCPU->exception_type ? 0x00 : csg65ce02_read_byte(pcReg);
 
@@ -336,14 +337,13 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 					temp_byte2 = bFlagValue;
 					break;
 				case IRQ:
+				case NMI:
 					// push high byte of the pc on the stack (note rti will not increase pc on return)
 					csg65ce02_push_byte(thisCPU, msb((uint16_t)(pcReg)));
 					// push low byte of the pc on the stack
 					csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg)));
 					// prepare EMPTY break flag to be pushed onto stack
 					temp_byte2 = 0x00;
-					break;
-				case NMI:
 					break;
 			}
 
@@ -360,11 +360,20 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			// set interrupt disable flag
 			thisCPU->iFlag = iFlagValue;
 
-			// load correct excpetion vector for brk/irq/nmi
-			thisCPU->pc = csg65ce02_read_byte(0xfffe) | (csg65ce02_read_byte(0xffff) << 8);
+			// load correct exception vector for brk/irq/nmi
+			// put this code somewhere else?
+			switch(thisCPU->exception_type) {
+				case NONE:
+				case IRQ:
+					thisCPU->pc = csg65ce02_read_byte(0xfffe) | (csg65ce02_read_byte(0xffff) << 8);
+					break;
+				case NMI:
+					thisCPU->pc = csg65ce02_read_byte(0xfffa) | (csg65ce02_read_byte(0xfffb) << 8);
+					break;
+			}
 
 			// clear the decimal flag (it will be restored by the rti instruction) (Eyes, p338)
-			// note: in older versions of the cpu (nmos) this didn't happen, resulting in difficult to find bugs
+			// note: in older versions of the cpu (nmos) this didn't happen, resulting in difficult to trace bugs
 			thisCPU->dFlag = 0x00;
 			break;
 		case 0x01 :								// ora (bp,x)
