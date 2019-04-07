@@ -910,8 +910,9 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			break;
 		case 0xf4 :								// phw immediate
 		case 0xfc :								// phw absolute
-			csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_l));
+												// please note that the resulting address on stack is also little endian this way!
 			csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_h));
+			csg65ce02_push_byte(thisCPU, csg65ce02_read_byte(effective_address_l));
 			break;
 		default :								// opcode not implemented
 			printf("error: opcode 0x%02x not implemented\n", opcode);
