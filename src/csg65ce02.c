@@ -281,7 +281,14 @@ inline void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t op
 					(csg65ce02_read_byte( ((uint8_t)(op1 + 1)) | (bReg << 8) ) << 8)) + zReg;
 			break;
 		case D_SP_IND_Y :
-			// IMPLEMENT!!!!!
+			// NOTE: SEE MEGA65 MANUAL ON GITHUB!
+			// Stack Pointer Indirect, indexed by Y OPR (d,SP),Y (new)
+			//
+			// The second byte of the two-byte instruction contains an unsigned offset value, d,
+			// which is added to the stack pointer (word) to form the address of two memory locations
+			// whose contents are added to the unsigned Y register to form the address of the memory
+			// location to be used by the operation.
+			*eal = (uint16_t)((csg65ce02_read_byte((uint16_t)(spReg + op1)) | (csg65ce02_read_byte((uint16_t)(spReg + op1+ 1)) << 8)) + yReg);
 			break;
 		case REL :
 			temp_byte = op1;
@@ -750,6 +757,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0xb5 :								// lda bp,x
 		case 0xb9 :								// lda abs,y
 		case 0xbd :								// lda abs,x
+		case 0xe2 :								// lda (d,s),y
 			aReg = csg65ce02_read_byte(effective_address_l);
 			setStatusForNZ(aReg);
 			break;
