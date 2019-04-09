@@ -76,10 +76,12 @@ int main() {
 	csg65ce02_ram[0xc013] = 0xa9;		// lda #$85
 	csg65ce02_ram[0xc014] = 0x85;
 	csg65ce02_ram[0xc015] = 0x0a;		// asl
-	csg65ce02_ram[0xc016] = 0x4c;		// jmp $c002
-	csg65ce02_ram[0xc017] = 0x02;
-	csg65ce02_ram[0xc018] = 0xc0;
-
+	csg65ce02_ram[0xc016] = 0x82;		// sta (#$03,s),y
+	csg65ce02_ram[0xc017] = 0x03;
+	csg65ce02_ram[0xc018] = 0xea;		// nop
+	csg65ce02_ram[0xc019] = 0x4c;		// jmp $c002
+	csg65ce02_ram[0xc01a] = 0x02;
+	csg65ce02_ram[0xc01b] = 0xc0;
 
 	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190317.0\n");
 	printf("type 'help' for a list of possible commands\n");
