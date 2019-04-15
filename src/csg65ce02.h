@@ -3,6 +3,10 @@
 //  Created by elmerucr on 11/01/2017.
 //  Copyright © 2018 elmerucr. All rights reserved.
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef CSG65CE02_H
 #define CSG65CE02_H
 
@@ -125,4 +129,8 @@ void csg65ce02_set_nmi(csg65ce02 *thisCPU, bool level);
 void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string);
 void csg65ce02_dump_page(csg65ce02 *thisCPU, uint8_t pageNo);
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
