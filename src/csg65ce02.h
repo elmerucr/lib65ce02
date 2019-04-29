@@ -3,15 +3,15 @@
 //  Created by elmerucr on 11/01/2017.
 //  Copyright © 2018 elmerucr. All rights reserved.
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifndef CSG65CE02_H
 #define CSG65CE02_H
-
-#include <stdint.h>
-#include <stdbool.h>
 
 enum exception_types {
 	NONE = 0,
