@@ -667,9 +667,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			setStatusForNZ(aReg);
 			break;
         case 0x62 :                             // rtn immediate
+            temp_byte = op1;    // before manipulating pcReg, we need to get the operand!!!! => Nasty bug otherwise!
             pcReg = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
             pcReg = (uint16_t)(pcReg+1);        // increase pc by 1 and wrap if necessary
-            for(int i=0; i<op1; i++) csg65ce02_pull_byte(thisCPU);                          // WHAT'S WRONG HERE?
+            for(int i=0; i<temp_byte; i++) csg65ce02_pull_byte(thisCPU);
             break;
 		case 0x64 :								// stz bp
 		case 0x74 :								// stz bp,x
