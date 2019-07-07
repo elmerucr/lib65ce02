@@ -9,7 +9,8 @@
 #include "csg65ce02_dasm.h"
 
 // all mnemonics (instructions)
-const char *mnemonics[122] = {
+const char *mnemonics[122] =
+{
 	"adc ","and ","asl ","asr ","asw ","aug ","bbr 0,","bbr 1,","bbr 2,","bbr 3,",
 	"bbr 4,","bbr 5,","bbr 6,","bbr 7,","bbs 0,","bbs 1,","bbs 2,","bbs 3,","bbs 4,","bbs 5,",
 	"bbs 6,","bbs 7,","bcc ","bcs ","beq ","bit ","bmi ","bne ","bpl ","bra ",
@@ -25,7 +26,8 @@ const char *mnemonics[122] = {
 	"tys","tza"
 };
 
-const int mnemonic_per_instruction[256] = {
+const int mnemonic_per_instruction[256] =
+{
 	30,65,36,94,114,65,2,77,67,65,2,116,114,65,2,6,
 	28,65,65,28,113,65,2,78,34,65,51,54,113,65,2,7,
 	57,1,57,57,25,1,85,79,73,1,85,120,25,1,85,8,
@@ -44,7 +46,8 @@ const int mnemonic_per_instruction[256] = {
 	24,91,91,24,68,91,50,103,93,91,74,76,68,91,50,21
 };
 
-const char *operand_modes[20][2] = {
+const char *operand_modes[20][2] =
+{
 	{ "#$", "" },
 	{ "$", "" },
 	{ "$", "" },
@@ -67,7 +70,8 @@ const char *operand_modes[20][2] = {
 	{ "$","" }
 };
 
-uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length) {
+uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length)
+{
 	int addressing_mode = addressing_mode_per_instruction[csg65ce02_read_byte(address)];
 	int mnemonic_index = mnemonic_per_instruction[csg65ce02_read_byte(address)];
 	int instr_length = bytes_per_instruction[csg65ce02_read_byte(address)];
@@ -76,7 +80,8 @@ uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length) {
 	uint8_t operand_byte0 = csg65ce02_read_byte((uint16_t)(address+1));
 	uint8_t operand_byte1 = csg65ce02_read_byte((uint16_t)(address+2));
 
-	switch( addressing_mode ) {
+	switch( addressing_mode )
+	{
 		case IMM :			// imm
 		case BP :			// bp
 		case BP_X :			// bp,x
@@ -133,31 +138,33 @@ uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length) {
 				operand_modes[addressing_mode][1]);
 			}
 			break;
-		case WREL : {		// wrel
-			uint16_t result = operand_byte0 | (operand_byte1 << 8);
-			snprintf(buffer,length,"%04x %02x %02x %02x %s%s%04x%s",
-				address,
-				opcode,
-				operand_byte0,
-				operand_byte1,
-				mnemonics[mnemonic_index],
-				operand_modes[addressing_mode][0],
-				(uint16_t)(address+2+result),
-				operand_modes[addressing_mode][1]);
+		case WREL :
+			{	// wrel
+				uint16_t result = operand_byte0 | (operand_byte1 << 8);
+				snprintf(buffer,length,"%04x %02x %02x %02x %s%s%04x%s",
+					address,
+					opcode,
+					operand_byte0,
+					operand_byte1,
+					mnemonics[mnemonic_index],
+					operand_modes[addressing_mode][0],
+					(uint16_t)(address+2+result),
+					operand_modes[addressing_mode][1]);
 			}
 			break;
-		case BPREL : {		// bprel (bbr* and bbs* instructions)
-			uint16_t result = (operand_byte1 & 0x80) ? 0xff00 | operand_byte1 : 0x0000 | operand_byte1;
-			snprintf(buffer,length,"%04x %02x %02x %02x %s%s%02x%s%04x",
-				address,
-				opcode,
-				operand_byte0,
-				operand_byte1,
-				mnemonics[mnemonic_index],
-				operand_modes[addressing_mode][0],
-				operand_byte0,
-				operand_modes[addressing_mode][1],
-				(uint16_t)(address+3+result));
+		case BPREL :
+			{	// bprel (bbr* and bbs* instructions)
+				uint16_t result = (operand_byte1 & 0x80) ? 0xff00 | operand_byte1 : 0x0000 | operand_byte1;
+				snprintf(buffer,length,"%04x %02x %02x %02x %s%s%02x%s%04x",
+					address,
+					opcode,
+					operand_byte0,
+					operand_byte1,
+					mnemonics[mnemonic_index],
+					operand_modes[addressing_mode][0],
+					operand_byte0,
+					operand_modes[addressing_mode][1],
+					(uint16_t)(address+3+result));
 			}
 			break;
 		default :

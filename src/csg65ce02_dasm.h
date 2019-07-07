@@ -6,16 +6,17 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-#ifndef CSG65CE02_DASM_H
-#define CSG65CE02_DASM_H
+	#ifndef CSG65CE02_DASM_H
+	#define CSG65CE02_DASM_H
 
-// function disassembles one instr at given address and returns the total size of the instruction
-uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length);
+	// function disassembles one instr at given address and returns the total size of the instruction
+	uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length);
 
-#endif
+	#endif
 
 #ifdef __cplusplus
 }
