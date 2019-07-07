@@ -126,16 +126,17 @@ uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length)
 				operand_modes[addressing_mode][0],
 				operand_modes[addressing_mode][1]);
 			break;
-		case REL : {		// rel
-			uint16_t result = (operand_byte0 & 0x80) ? 0xff00 | operand_byte0 : 0x0000 | operand_byte0;
-			snprintf(buffer,length,"%04x %02x %02x    %s%s%04x%s",
-				address,
-				opcode,
-				operand_byte0,
-				mnemonics[mnemonic_index],
-				operand_modes[addressing_mode][0],
-				(uint16_t)(address+2+result),
-				operand_modes[addressing_mode][1]);
+		case REL :
+            {		// rel
+                uint16_t result = (operand_byte0 & 0x80) ? 0xff00 | operand_byte0 : 0x0000 | operand_byte0;
+                snprintf(buffer,length,"%04x %02x %02x    %s%s%04x%s",
+                    address,
+                    opcode,
+                    operand_byte0,
+                    mnemonics[mnemonic_index],
+                    operand_modes[addressing_mode][0],
+                    (uint16_t)(address+2+result),
+                    operand_modes[addressing_mode][1]);
 			}
 			break;
 		case WREL :
