@@ -10,21 +10,22 @@
 //
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-#ifndef CSG65CE02_MMU_H
-#define CSG65CE02_MMU_H
+	#ifndef CSG65CE02_MMU_H
+	#define CSG65CE02_MMU_H
 
-#include "csg65ce02.h"
+	#include "csg65ce02.h"
 
-uint8_t *csg65ce02_ram;		// will be publically visible (for dma purposes)
-							// should not be used directly by cpu (cpu uses access functions)
+	uint8_t *csg65ce02_ram;		// will be publically visible (for dma purposes)
+								// should not be used directly by cpu (cpu uses access functions)
 
-void csg65ce02_mmu_init();
-void csg65ce02_mmu_cleanup();
+	void csg65ce02_mmu_init();
+	void csg65ce02_mmu_cleanup();
 
-#endif
+	#endif
 
 #ifdef __cplusplus
 }

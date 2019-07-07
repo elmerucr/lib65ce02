@@ -17,7 +17,8 @@
 // This function reads a line from stdin, and returns a pointer to a string. The caller needs to free allocated memory
 char *read_line(void);
 
-int main() {
+int main()
+{
 	csg65ce02_mmu_init();		// first, initialize memory management unit and memory
 
 	// set nmi, reset & break vectors
@@ -108,7 +109,8 @@ int main() {
 	char *token0, *token1, *token2, *token3;
 	bool finished = false;
 
-	do {
+	do
+	{
 		putchar(prompt);
 		input_string = read_line();
 		token0 = strtok( input_string, " ");
@@ -116,44 +118,65 @@ int main() {
 		token2 = strtok( NULL, " ");
 		token3 = strtok( NULL, " ");
 
-		if( token0 == NULL ) {
+		if( token0 == NULL )
+		{
 			// do nothing, just catch the empty token, as strcmp with NULL pointer results in segfault
-		} else if( strcmp(token0, "b") == 0 ) {
-			if( token1 == NULL ) {
+		}
+		else if( strcmp(token0, "b") == 0 )
+		{
+			if( token1 == NULL )
+			{
 				bool breakpoints_present = false;
-				for(int i=0; i<65536; i++) {
-					if( cpu0.breakpoint_array[i] == true ) {
+				for(int i=0; i<65536; i++)
+				{
+					if( cpu0.breakpoint_array[i] == true )
+					{
 						printf("$%04x\n",i);
 						breakpoints_present = true;
 					}
 				}
-				if( !breakpoints_present) {
+				if( !breakpoints_present)
+				{
 					printf("no breakpoints defined\n");
 				}
-			} else {
+			}
+			else
+			{
 				unsigned int i;
 				sscanf( token1, "%04x", &i);
-				if(cpu0.breakpoint_array[i]) {
+				if(cpu0.breakpoint_array[i])
+				{
 					printf("removing breakpoint at $%04x\n", i);
 					cpu0.breakpoint_array[i] = false;
-				} else {
+				}
+				else
+				{
 					printf("adding breakpoint at $%04x\n", i);
 					cpu0.breakpoint_array[i] = true;
 				}
 			}
-		} else if( strcmp(token0, "base") == 0 ) {
+		}
+		else if( strcmp(token0, "base") == 0 )
+		{
 			printf("basepage");
 			csg65ce02_dump_page(&cpu0,cpu0.b);
-		} else if( strcmp(token0, "d") == 0) {
+		}
+		else if( strcmp(token0, "d") == 0)
+		{
 			uint16_t start = cpu0.pc;
-			for(int i=0; i<8; i++) {
+			for(int i=0; i<8; i++)
+			{
 				start += csg65ce02_dasm(start, text_buffer, TEXT_BUFFER_SIZE);
 				putchar(',');
 				puts(text_buffer);
 			}
-		} else if( strcmp(token0, "exit") == 0 ) {
+		}
+		else if( strcmp(token0, "exit") == 0 )
+		{
 			finished = true;
-		} else if( strcmp(token0, "help") == 0) {
+		}
+		else if( strcmp(token0, "help") == 0)
+		{
 			printf("\nCommands:\n");
 			printf("b - Breakpoint related commands\n");
 			printf("d - Disassemble next 8 instructions\n");
@@ -166,27 +189,41 @@ int main() {
 			printf("help   - Prints this help message\n");
 			printf("reset  - Reset 65ce02\n\n");
 			//printf("Type 'help <command name>' for more detailed info\n\n");
-		} else if( strcmp(token0, "irq") == 0) {
-			if( token1 == NULL ) {
+		}
+		else if( strcmp(token0, "irq") == 0)
+		{
+			if( token1 == NULL )
+			{
 				printf("Current status of irq pin is %1u\n", cpu0.irq_pin ? 1 : 0);
-			} else {
+			}
+			else
+			{
 				unsigned int i;
 				sscanf( token1, "%1u", &i);
-				if( i == 0 ) {
+				if( i == 0 )
+				{
 					csg65ce02_set_irq(&cpu0, false);
 					printf("Current status of irq pin is %1u\n", cpu0.irq_pin ? 1 : 0);
-				} else if( i == 1) {
+				}
+				else if( i == 1)
+				{
 					csg65ce02_set_irq(&cpu0, true);
 					printf("Current status of irq pin is %1u\n", cpu0.irq_pin ? 1 : 0);
-				} else {
+				} else
+				{
 					printf("Error: argument must be 0 or 1\n");
 				}
 			}
-		} else if( strcmp(token0, "n") == 0) {
+		}
+		else if( strcmp(token0, "n") == 0)
+		{
 			unsigned int n = 0;
-			if( token1 == NULL ) {
+			if( token1 == NULL )
+			{
 				// do nothing, n must remain 0
-			} else {
+			}
+			else
+			{
 				sscanf( token1, "%i", &n);
 			}
 			int i = csg65ce02_execute(&cpu0,n);
@@ -195,67 +232,85 @@ int main() {
 			printf("%s\n\n", large_text_buffer);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			printf("%s\n",text_buffer);
-		} else if( strcmp(token0, "r") == 0 ) {
+		}
+		else if( strcmp(token0, "r") == 0 )
+		{
 			csg65ce02_dump_status(&cpu0, large_text_buffer);
 			printf("%s\n\n", large_text_buffer);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			printf("%s\n",text_buffer);
-		} else if( strcmp(token0, "reset") == 0 ) {
+		}
+		else if( strcmp(token0, "reset") == 0 )
+		{
 			printf("Resetting 65ce02\n");
 			csg65ce02_reset(&cpu0);
 			csg65ce02_dump_status(&cpu0, large_text_buffer);
 			printf("%s\n\n", large_text_buffer);
 			csg65ce02_dasm(cpu0.pc,text_buffer, TEXT_BUFFER_SIZE);
 			puts(text_buffer);
-		} else if( strcmp(token0, "t") == 0 ) {
-			if(cpu0.eFlag) {			// stack page always $01
+		}
+		else if( strcmp(token0, "t") == 0 )
+		{
+			if(cpu0.eFlag)
+			{	// stack page always $01
 				printf("e flag is set, stack is in 6502 mode\n");
-			} else {				//
+			}
+			else
+			{				//
 				printf("e flag is not set, stack is in extended mode\n");
 			}
 			temp_byte = (cpu0.sp & 0xff00) >> 8;
 			csg65ce02_dump_page(&cpu0,temp_byte);	// dump stack
-		} else {
+		}
+		else
+		{
 			printf("Error: unknown command '%s'\n", input_string);
 		}
-	} while( !finished );
+	}
+	while( !finished );
 
 	free(input_string);
 	free(cpu0.breakpoint_array);
-
 	printf("bye\n\n");
-
 	return 0;
 }
 
-char *read_line(void) {
+char *read_line(void)
+{
 	int bufsize = TEXT_BUFFER_SIZE;
 	int position = 0;
 	char *buffer = malloc(sizeof(char) * bufsize);
 	int c;
 
-	if (!buffer) {
+	if (!buffer)
+	{
 		fprintf(stderr, "lsh: allocation error\n");
 		exit(1);	// failure
 	}
 
-	while (1) {
+	while (1)
+	{
 		// Read a character
 		c = getchar();
 		// If we hit EOF, replace it with a null character and return.
-		if (c == EOF || c == '\n') {
+		if (c == EOF || c == '\n')
+		{
 			buffer[position] = '\0';
 			return buffer;
-		} else {
+		}
+		else
+		{
 			buffer[position] = c;
 		}
 		position++;
 
     	// If we have exceeded the buffer, reallocate.
-    	if (position >= bufsize) {
+    	if (position >= bufsize)
+		{
     		bufsize += TEXT_BUFFER_SIZE;
     		buffer = realloc(buffer, bufsize);
-    		if (!buffer) {
+    		if (!buffer)
+			{
         		fprintf(stderr, "lsh: allocation error\n");
         		exit(1);		// failure
       		}
