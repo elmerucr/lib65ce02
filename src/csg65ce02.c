@@ -194,7 +194,7 @@ inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU)
 }
 
 //	Main function, execute a number of cycles on the virtual cpu
-unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles)
+int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *processed_cycles)
 {
 	uint8_t  current_opcode;
 	uint16_t effective_address_l;		// low byte address of the effective address, normally used
@@ -264,7 +264,11 @@ unsigned int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles)
 	while(	(thisCPU->cycle_count < no_cycles) &&
 				!((thisCPU->breakpoint_array[pcReg] == true) && thisCPU->breakpoints_active) );
 
-    return thisCPU->cycle_count;
+	*processed_cycles = thisCPU->cycle_count;
+
+	int result = thisCPU->breakpoint_array[pcReg] ? 1 : 0;
+
+    return result;
 }
 
 inline void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t opcode, uint16_t *eal, uint16_t *eah)
