@@ -111,7 +111,7 @@ extern "C"
 	void	csg65ce02_push_byte(csg65ce02 *thisCPU, uint8_t byte);
 	uint8_t	csg65ce02_pull_byte(csg65ce02 *thisCPU);
 
-	//	Execute a number of cycles on the virtual cpu.
+	//	Run a number of cycles on the virtual cpu.
 	//  The function takes a pointer to an unsigned int in which the number of cycles processed by
 	//  the cpu will be written.
 	//
@@ -120,7 +120,7 @@ extern "C"
 	//
 	//	Note: when an instr takes only 1 cycle, a pending irq will not be acknowledged, it has to wait
 	//	--> How to implement this? --> just store the duration of the currently executed instruction
-	int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *processed_cycles);
+	int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *processed_cycles);
 
 	// irq functions - simulate the irq pin on cpu - default state is '1' or 'true'
 	// when it is 'pulled', state changes to false: interrupt is requested

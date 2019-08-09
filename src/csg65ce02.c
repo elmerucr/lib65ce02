@@ -193,8 +193,8 @@ inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU)
 	}
 }
 
-//	Main function, execute a number of cycles on the virtual cpu
-int csg65ce02_execute(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *processed_cycles)
+//	Main function, run a number of cycles on the virtual cpu
+int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *processed_cycles)
 {
 	uint8_t  current_opcode;
 	uint16_t effective_address_l;		// low byte address of the effective address, normally used

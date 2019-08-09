@@ -4,7 +4,7 @@ This code, written in c and available on [GitHub](https://github.com/elmerucr/li
 ## Motivation
 Many emulation libraries for older cpu's already exist. This is for my own learning experience and for development of a virtual 65ce02 based computer system.
 ## Core functions
-Typically, this library will not take control of the main thread, in stead it will run a designated amount of cycles using the ````csg65ce02_execute(csg65ce02 *thisCPU, unsigned int noCycles, unsigned int *processed_cycles)```` function that returns 0 on normal execution and 1 on a breakpoint encounter. It is possible to run only one cpu instruction by calling the this function with 0 cycles as an argument.
+Typically, this library will not take control of the main thread, in stead it will run a designated amount of cycles using the ````csg65ce02_run(csg65ce02 *thisCPU, unsigned int noCycles, unsigned int *processed_cycles)```` function that returns 0 on normal execution and 1 on a breakpoint encounter. It is possible to run only one cpu instruction by calling the this function with 0 cycles as an argument.
 
 Besides the emulation core, the library also contains a disassembler. The disassemble function ````csg65ce02_dasm(uint16_t address, char *buffer, int length)```` depends on the memory read function from the emulation core. That way, the disassembler sees memory the same way as the cpu.
 ## Compiling
