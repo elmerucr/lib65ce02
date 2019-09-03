@@ -1,4 +1,4 @@
-# lib65ce02
+# ![lib65ce02](https://raw.githubusercontent.com/elmerucr/lib65ce02/master/doc/CSG65CE02.png)
 ## Description
 This code, written in c and available on [GitHub](https://github.com/elmerucr/lib65ce02), aims to become a cycle exact emulation of the 65ce02 cpu. Its programming interface is inspired by [Musashi Motorola 680x0 emulator](https://github.com/kstenerud/Musashi) by Karl Stenerud. Please realise that quite a few instructions needed guessing for their exact internal working as this cpu is not widely known as e.g. the 6502.
 ## Motivation
