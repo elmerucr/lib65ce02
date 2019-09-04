@@ -1,7 +1,7 @@
 # lib65ce02
 # ![lib65ce02](./doc/CSG65CE02.png)
 ## Description
-This code, written in c and available on [GitHub](https://github.com/elmerucr/lib65ce02), aims to become a cycle exact emulation of the CSG 65CE02 cpu. Its programming interface is inspired by [Musashi Motorola 680x0 emulator](https://github.com/kstenerud/Musashi) by Karl Stenerud. Please realise that quite a few instructions needed guessing for their exact internal working since this cpu is not as widely examined as for instance the MOS 6502.
+This code, written in c and available on [GitHub](https://github.com/elmerucr/lib65ce02), aims to become a cycle exact emulation of the CSG 65CE02 cpu. Its application programming interface is inspired by [Musashi Motorola 680x0 emulator](https://github.com/kstenerud/Musashi) by Karl Stenerud. Please realise that quite a few instructions needed guessing for their exact internal working since this cpu is not as widely examined as for instance the MOS 6502.
 ## Motivation
 Many emulation libraries for older cpu's already exist. This project serves my own learning experience and development of the [E64](https://github.com/elmerucr/E64) virtual computer system.
 ## Core functions
