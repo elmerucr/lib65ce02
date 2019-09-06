@@ -2,8 +2,10 @@
 # ![lib65ce02](./doc/CSG65CE02.png)
 ## Description
 The lib65ce02 library aims to become a cycle exact emulation of the CSG 65CE02 cpu. It is written in c and available on [GitHub](https://github.com/elmerucr/lib65ce02). The application programming interface is inspired by [Musashi Motorola 680x0 emulator](https://github.com/kstenerud/Musashi) by Karl Stenerud. Please realise that quite a few instructions needed guessing for their exact internal working since this cpu was never widely distributed and examined as for instance the MOS 6502.
+
+Please have a look at the [manual](./doc/manual.md) (= a work in progress!) for the inner working of the cpu and its instructions.
 ## Motivation
-Many emulation libraries for older cpu's already exist. This project serves my own learning experience and development of the [E64](https://github.com/elmerucr/E64) virtual computer system.
+Many emulation libraries for older cpu's already exist. This project serves my own learning experience and forms a crucial component of the [E64](https://github.com/elmerucr/E64) virtual computer system.
 ## Core functions
 ### Running cycles on the cpu
 Typically, this library will not take control of the main thread, in stead it will run a designated amount of cycles using the ````int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *processed_cycles);```` function that returns 0 on normal execution or 1 on a breakpoint encounter. It is possible to run only one cpu instruction by calling the this function with 0 cycles as an argument.
