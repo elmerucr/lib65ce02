@@ -262,7 +262,7 @@ int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *proc
         //    (3) breakpoints activated?
     }
 	while(	(thisCPU->cycle_count < no_cycles) &&
-				!((thisCPU->breakpoint_array[pcReg] == true) && thisCPU->breakpoints_active) );
+				!((thisCPU->breakpoint_array[pcReg] == true) && (thisCPU->breakpoints_active == true) ) );
 
 	*processed_cycles = thisCPU->cycle_count;
 
