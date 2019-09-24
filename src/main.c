@@ -46,7 +46,7 @@ int main()
 	csg65ce02_ram[0xa90b] = 0x05;
 	csg65ce02_ram[0xa90c] = 0xb1;		// lda ($f0),y
 	csg65ce02_ram[0xa90d] = 0xf0;
-	// do your interrupt handling code here
+	// put interrupt handling code here
 	// restore registers
 	csg65ce02_ram[0xa90e] = 0xfb;		// plz
 	csg65ce02_ram[0xa90f] = 0x7a;		// ply
@@ -84,15 +84,17 @@ int main()
 	csg65ce02_ram[0xc01a] = 0x02;
 	csg65ce02_ram[0xc01b] = 0xc0;
 
-	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190317.0\n");
+	printf("\nemulate_65ce02 (C)2019 by elmerucr v20190924.0\n");
 	printf("type 'help' for a list of possible commands\n");
 
 	char text_buffer[TEXT_BUFFER_SIZE];	// allocate storage for text_buffer to print strings
 	char large_text_buffer[256];		// allocate more storage for print functions
 
 	csg65ce02 cpu0;
+	bool irq_pin_host = true;			// the status of the irq pin is "owned" by the host system
 	csg65ce02_init(&cpu0);
 	csg65ce02_enable_breakpoints(&cpu0);		// in this setting, breakpoints are always enabled
+	csg65ce02_assign_irq_pin(&cpu0, &irq_pin_host);
 
 	// reset system and print welcome message
 	printf("resetting 65ce02...\n\n");
@@ -178,12 +180,12 @@ int main()
 		else if( strcmp(token0, "help") == 0)
 		{
 			printf("\nCommands:\n");
-			printf("b - Breakpoint related commands\n");
-			printf("d - Disassemble next 8 instructions\n");
-			printf("i - Change irq pin state\n");
-			printf("n - Execute next instruction\n");
-			printf("r - Dump processor registers\n");
-			printf("t - Dump current stack page\n\n");
+			printf("b   - Breakpoint related commands\n");
+			printf("d   - Disassemble next 8 instructions\n");
+			printf("irq - Change irq pin state\n");
+			printf("n   - Execute next instruction\n");
+			printf("r   - Dump processor registers\n");
+			printf("t   - Dump current stack page\n\n");
 			printf("base   - Dump current basepage\n");
 			printf("exit   - Exit emulate_65ce02\n");
 			printf("help   - Prints this help message\n");
@@ -194,7 +196,7 @@ int main()
 		{
 			if( token1 == NULL )
 			{
-				printf("Current status of irq pin is %1u\n", cpu0.irq_pin ? 1 : 0);
+				printf("Current status of irq pin is %1u\n", irq_pin_host ? 1 : 0);
 			}
 			else
 			{
@@ -202,13 +204,13 @@ int main()
 				sscanf( token1, "%1u", &i);
 				if( i == 0 )
 				{
-					csg65ce02_set_irq(&cpu0, false);
-					printf("Current status of irq pin is %1u\n", cpu0.irq_pin ? 1 : 0);
+					irq_pin_host = false;
+					printf("Current status of irq pin is %1u\n", irq_pin_host ? 1 : 0);
 				}
-				else if( i == 1)
+				else if( i == 1 )
 				{
-					csg65ce02_set_irq(&cpu0, true);
-					printf("Current status of irq pin is %1u\n", cpu0.irq_pin ? 1 : 0);
+					irq_pin_host = true;
+					printf("Current status of irq pin is %1u\n", irq_pin_host ? 1 : 0);
 				} else
 				{
 					printf("Error: argument must be 0 or 1\n");

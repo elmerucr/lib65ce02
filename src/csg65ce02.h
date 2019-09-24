@@ -43,9 +43,10 @@ extern "C"
 		uint8_t 	zFlag;		// Zero
 		uint8_t		cFlag;		// Carry
 
-		// irq and nmi (exception things)
 		enum exception_types exception_type;
-		bool irq_pin;
+		// irq pin
+		bool *irq_pin;
+		// nmi pin
 		bool nmi_pin;
 		bool nmi_pin_previous_state;	// extra boolean value to allow edge triggering
 
@@ -122,11 +123,10 @@ extern "C"
 	//	--> How to implement this? --> just store the duration of the currently executed instruction
 	int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *processed_cycles);
 
-	// irq functions - simulate the irq pin on cpu - default state is '1' or 'true'
-	// when it is 'pulled', state changes to false: interrupt is requested
-	// irq is state triggered
-	// once the interrupt is acknowledged, the pin state automatically changes to true
-	void csg65ce02_set_irq(csg65ce02 *thisCPU, bool level);
+	// irq function - The irq pin is not owned by the cpu, in stead by the hosting application/machine
+	// It is the responsibility of the hosting application to supply such a pin by passing a pointer to
+	// a boolean value. irq is state triggered
+	void csg65ce02_assign_irq_pin(csg65ce02 *thisCPU, bool *pin);
 
 	// nmi functions
 	// edge triggered and must always be acknowledged
