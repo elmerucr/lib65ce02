@@ -224,11 +224,9 @@ int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *proc
                 if(*thisCPU->irq_pin == true)
 				{						            		// irq pin is up
                     thisCPU->exception_type = NONE;
-					printf("irq pin is up\n");
                 }
 				else
 				{									        // irq pin is down
-					printf("irq pin is down\n");
                     if(thisCPU->iFlag)
 					{						            	// irq masked by flag
                         thisCPU->exception_type = NONE;
