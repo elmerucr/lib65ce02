@@ -8,7 +8,53 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "csg65ce02.h"
-#include "csg65ce02_macros.h"
+
+// general macros
+#define msb(n)      (uint8_t)((n & 0xff00) >> 8)         // get msb from a word
+#define lsb(n)      (uint8_t)(n & 0x00ff)                // get lsb from a word
+
+// flag position definition macros
+#define n_flag_value       0x80	// Negative flag
+#define v_flag_value       0x40	// Overflow
+#define e_flag_value       0x20	// Extend flag (16bit, spl and sph togeth), when set, only spl is used
+#define b_flag_value       0x10	// Break - does NOT exist. At interrupt, save bit value in stack
+#define d_flag_value       0x08	// Decimal flag - please note the 65ce02 bug that's been found (there is one)
+#define i_flag_value       0x04	// Interrupt
+#define z_flag_value       0x02	// Zero
+#define c_flag_value       0x01	// Carry
+
+// register access macros
+#define pcReg       thisCPU->pc
+#define aReg        thisCPU->a
+#define xReg        thisCPU->x
+#define yReg        thisCPU->y
+#define zReg		thisCPU->z
+#define bReg		thisCPU->b
+#define spReg       thisCPU->sp
+
+// flag set pseudofunctions
+#define setStatusForN(n)								\
+            if(n & n_flag_value) {						\
+                thisCPU->nFlag = n_flag_value;			\
+            } else {									\
+                thisCPU->nFlag = 0x00;					\
+            }
+
+#define setStatusForZ(n)								\
+            if(n) {										\
+                thisCPU->zFlag = 0x00;					\
+            } else {									\
+                thisCPU->zFlag = z_flag_value;			\
+            }
+
+// combined flag set pseudofunctions
+#define setStatusForNZ(n)   setStatusForN(n); setStatusForZ(n)
+
+// memory access macros
+#define pcReg1		(uint16_t)(pcReg+1)
+#define pcReg2		(uint16_t)(pcReg+2)
+#define op1			csg65ce02_read_byte(pcReg1)
+#define op2			csg65ce02_read_byte(pcReg2)
 
 // library internal function
 void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t opcode, uint16_t *eal, uint16_t *eah);
@@ -120,9 +166,9 @@ void csg65ce02_reset(csg65ce02 *thisCPU)
 
 	thisCPU->nFlag = 0x00;
 	thisCPU->vFlag = 0x00;
-	thisCPU->eFlag = eFlagValue;	// starts flagged (8 bit sp on page $01) for 6502 compatible behaviour
+	thisCPU->eFlag = e_flag_value;	// starts flagged (8 bit sp on page $01) for 6502 compatible behaviour
 	thisCPU->dFlag = 0x00;			// must be zero after reset!
-	thisCPU->iFlag = iFlagValue;	// starts flagged, to avoid irq's from happening - bootup code must 'cli' after setup
+	thisCPU->iFlag = i_flag_value;	// starts flagged, to avoid irq's from happening - bootup code must 'cli' after setup
 	thisCPU->zFlag = 0x00;
 	thisCPU->cFlag = 0x00;
 
@@ -382,7 +428,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 					// push low byte of the pc+2 on the stack
 					csg65ce02_push_byte(thisCPU, lsb((uint16_t)(pcReg+2)));
 					// prepare break flag to be pushed onto stack
-					temp_byte2 = bFlagValue;
+					temp_byte2 = b_flag_value;
 					break;
 				case IRQ:
 				case NMI:
@@ -399,14 +445,14 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			temp_byte =	thisCPU->nFlag |
 						thisCPU->vFlag |
 						thisCPU->eFlag |
-						temp_byte2     |	// pushes bFlagValue when cause was brk instruction
+						temp_byte2     |	// pushes b_flag_value when cause was brk instruction
 						thisCPU->dFlag |
 						thisCPU->iFlag |    // yes, the i flag as it was during last instruction is pushed!
 						thisCPU->zFlag |
 						thisCPU->cFlag;
 			csg65ce02_push_byte(thisCPU, temp_byte);
 			// set interrupt disable flag
-			thisCPU->iFlag = iFlagValue;
+			thisCPU->iFlag = i_flag_value;
 
 			// load correct exception vector for brk/irq/nmi
 			// put this code somewhere else?
@@ -441,7 +487,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			thisCPU->eFlag = 0x00;
 			break;
 		case 0x03 :								// see
-			thisCPU->eFlag = eFlagValue;
+			thisCPU->eFlag = e_flag_value;
 			break;
 		case 0x04 :								// tsb bp
 		case 0x0c :								// tsb abs
@@ -457,7 +503,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			temp_byte = csg65ce02_read_byte(effective_address_l);
 			if(temp_byte & 0x80)
 			{
-				thisCPU->cFlag = cFlagValue;
+				thisCPU->cFlag = c_flag_value;
 			}
 			csg65ce02_write_byte(effective_address_l, (temp_byte << 1) );
 			setStatusForNZ((temp_byte << 1))
@@ -493,7 +539,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			temp_byte =	thisCPU->nFlag |
 						thisCPU->vFlag |
 						thisCPU->eFlag |
-						bFlagValue     |
+						b_flag_value     |
 						thisCPU->dFlag |
 						thisCPU->iFlag |
 						thisCPU->zFlag |
@@ -504,7 +550,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			temp_byte = thisCPU->a;
 			if(temp_byte & 0x80)
 			{
-				thisCPU->cFlag = cFlagValue;
+				thisCPU->cFlag = c_flag_value;
 			}
 			thisCPU->a = (temp_byte << 1);
 			setStatusForNZ(thisCPU->a);
@@ -612,19 +658,19 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x89 :								// bit immediate (note 65c02 not n&v flags!)
 			temp_byte = csg65ce02_read_byte(effective_address_l);
 			setStatusForZ(temp_byte & aReg);
-			thisCPU->nFlag = temp_byte & nFlagValue;
-			thisCPU->vFlag = temp_byte & vFlagValue;
+			thisCPU->nFlag = temp_byte & n_flag_value;
+			thisCPU->vFlag = temp_byte & v_flag_value;
 			break;
 		case 0x28 :								// plp
 			temp_byte = csg65ce02_pull_byte(thisCPU);
-			thisCPU->nFlag = temp_byte & nFlagValue;
-			thisCPU->vFlag = temp_byte & vFlagValue;
+			thisCPU->nFlag = temp_byte & n_flag_value;
+			thisCPU->vFlag = temp_byte & v_flag_value;
 					// no e flag, only to be changed by cle and see instructions
 					// no b flag of course...
-			thisCPU->dFlag = temp_byte & dFlagValue;
-			thisCPU->iFlag = temp_byte & iFlagValue;
-			thisCPU->zFlag = temp_byte & zFlagValue;
-			thisCPU->cFlag = temp_byte & cFlagValue;
+			thisCPU->dFlag = temp_byte & d_flag_value;
+			thisCPU->iFlag = temp_byte & i_flag_value;
+			thisCPU->zFlag = temp_byte & z_flag_value;
+			thisCPU->cFlag = temp_byte & c_flag_value;
 			break;
 		case 0x2b :								// tys
 			spReg = (spReg & 0x00ff) | (yReg << 8);
@@ -641,7 +687,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			}
 			break;
 		case 0x38 :								// sec
-			thisCPU->cFlag = cFlagValue;
+			thisCPU->cFlag = c_flag_value;
 			break;
 		case 0x3a :								// dec a
 			aReg--;
@@ -653,14 +699,14 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			break;
 		case 0x40 :								// rti
 			temp_byte = csg65ce02_pull_byte(thisCPU);
-			thisCPU->nFlag = temp_byte & nFlagValue;
-			thisCPU->vFlag = temp_byte & vFlagValue;
-			thisCPU->eFlag = temp_byte & eFlagValue;
+			thisCPU->nFlag = temp_byte & n_flag_value;
+			thisCPU->vFlag = temp_byte & v_flag_value;
+			thisCPU->eFlag = temp_byte & e_flag_value;
 					// no b flag to set of course...
-			thisCPU->dFlag = temp_byte & dFlagValue;
-			thisCPU->iFlag = temp_byte & iFlagValue;
-			thisCPU->zFlag = temp_byte & zFlagValue;
-			thisCPU->cFlag = temp_byte & cFlagValue;
+			thisCPU->dFlag = temp_byte & d_flag_value;
+			thisCPU->iFlag = temp_byte & i_flag_value;
+			thisCPU->zFlag = temp_byte & z_flag_value;
+			thisCPU->cFlag = temp_byte & c_flag_value;
 			// restore the program counter
 			pcReg = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
 			// note: rti doesn't need a correction of pc afterwards (unlike rts)
@@ -718,11 +764,11 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x7d :								// adc abs,x
 			temp_byte = csg65ce02_read_byte(effective_address_l);
 			temp_word = aReg + temp_byte + thisCPU->cFlag;
-			if(temp_word & 0xff00) thisCPU->cFlag = cFlagValue; else thisCPU->cFlag = 0;
+			if(temp_word & 0xff00) thisCPU->cFlag = c_flag_value; else thisCPU->cFlag = 0;
 			temp_byte2 = temp_word & 0xff;
 			if(((aReg^temp_byte2) & (temp_byte^temp_byte2)) & 0x80)
 			{
-				thisCPU->vFlag = vFlagValue;
+				thisCPU->vFlag = v_flag_value;
 			}
 			else
 			{
@@ -752,7 +798,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			setStatusForNZ(aReg);
 			break;
 		case 0x78 :								// sei
-			thisCPU->iFlag = iFlagValue;
+			thisCPU->iFlag = i_flag_value;
 			break;
 		case 0x7a :								// ply
 			yReg = csg65ce02_pull_byte(thisCPU);
@@ -877,7 +923,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			setStatusForNZ(0x00ff & temp_word);
 			if(temp_word & 0xff00)
 			{		// yReg >= operand
-				thisCPU->cFlag = cFlagValue;
+				thisCPU->cFlag = c_flag_value;
 			}
 			else
 			{									// yReg < operand
@@ -897,7 +943,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			setStatusForNZ(0x00ff & temp_word);
 			if(temp_word & 0xff00)
 			{		// aReg >= operand
-				thisCPU->cFlag = cFlagValue;
+				thisCPU->cFlag = c_flag_value;
 			}
 			else
 			{									// aReg < operand
@@ -911,7 +957,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			setStatusForNZ(0x00ff & temp_word);
 			if(temp_word & 0xff00)
 			{		// zReg >= operand
-				thisCPU->cFlag = cFlagValue;
+				thisCPU->cFlag = c_flag_value;
 			}
 			else
 			{						// zReg < operand
@@ -962,7 +1008,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			setStatusForNZ(0x00ff & temp_word);
 			if(temp_word & 0xff00)
 			{	// xReg >= operand
-				thisCPU->cFlag = cFlagValue;
+				thisCPU->cFlag = c_flag_value;
 			}
 			else
 			{	// xReg < operand
@@ -996,7 +1042,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			}
 			break;
 		case 0xf8 :								// sed
-			thisCPU->dFlag = dFlagValue;
+			thisCPU->dFlag = d_flag_value;
 			break;
 		case 0xfa :								// plx
 			xReg = csg65ce02_pull_byte(thisCPU);
