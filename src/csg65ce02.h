@@ -32,21 +32,21 @@ extern "C"
 		uint16_t	sp;			// stack pointer 16 bits
 
 		// status register (7 individual flags)
-		uint8_t		nFlag;		// Negative flag
-		uint8_t		vFlag;		// Overflow
-		uint8_t		eFlag;		// Extend flag (16bit composed of spl and sph), when set, only spl is used
-		//uint8_t		bFlag;	// Break - does exist as a permanent '1'
+		uint8_t		n_flag;		// Negative flag
+		uint8_t		v_flag;		// Overflow
+		uint8_t		e_flag;		// Extend flag (16bit composed of spl and sph), when set, only spl is used
+		//uint8_t		b_flag;	// Break - does exist as a permanent '1'
 								// doesn't make sense to implement at this stage.
 								// At interrupt, just push the 'cause' in stack
-		uint8_t		dFlag;		// Decimal flag - please note the 65ce02 bug that's been found
-		uint8_t		iFlag;		// Interrupt
-		uint8_t 	zFlag;		// Zero
-		uint8_t		cFlag;		// Carry
+		uint8_t		d_flag;		// Decimal flag - please note the 65ce02 bug that's been found
+		uint8_t		i_flag;		// Interrupt
+		uint8_t 	z_flag;		// Zero
+		uint8_t		c_flag;		// Carry
 
 		enum exception_types exception_type;
 		// irq pin
 		bool *irq_pin;
-		// nmi pin
+		// nmi pin (NEEDS TO BE CHANGED INTO A POINTER)
 		bool nmi_pin;
 		bool nmi_pin_previous_state;	// extra boolean value to allow edge triggering
 
@@ -90,6 +90,7 @@ extern "C"
 	extern const uint8_t modify_pc_per_instruction[];
 
 	// Init procedure, disables breakpoints and creates dynamically internal breakpoint array of 64k
+	// Call ONLY once per cpu instance!
 	void csg65ce02_init(csg65ce02 *thisCPU);
 
 	// Cleanup procedure, frees memory allocated by init function
@@ -112,9 +113,9 @@ extern "C"
 	void	csg65ce02_push_byte(csg65ce02 *thisCPU, uint8_t byte);
 	uint8_t	csg65ce02_pull_byte(csg65ce02 *thisCPU);
 
-	//	Run a number of cycles on the virtual cpu.
-	//  The function takes a pointer to an unsigned int in which the number of cycles processed by
-	//  the cpu will be written.
+	//	Run a number of cycles on the cpu. The function takes a pointer to
+	//  an unsigned int in which the number of cycles processed by the cpu
+	//  will be written.
 	//
 	//	When called with 0 cycles, only one instruction will be executed
 	//	The function returns 0 on normal execution, 1 on a cpu breakpoint.

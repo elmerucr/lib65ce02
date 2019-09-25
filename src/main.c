@@ -254,7 +254,7 @@ int main()
 		}
 		else if( strcmp(token0, "t") == 0 )
 		{
-			if(cpu0.eFlag)
+			if(cpu0.e_flag)
 			{	// stack page always $01
 				printf("e flag is set, stack is in 6502 mode\n");
 			}
