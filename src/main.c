@@ -36,8 +36,8 @@ int main()
 	csg65ce02_ram[0xa903] = 0xdb;		// phz
 	// discover the cause of irq, if brk instruction, then take into account signature byte!
 	// maybe better to use the stack pointer relative addressing mode!?
-	csg65ce02_ram[0xa904] = 0xba;		// tsx, load lsb of sp into x
-	csg65ce02_ram[0xa905] = 0x0b;		// tsy, load msb of sp into y
+	csg65ce02_ram[0xa904] = 0xba;		// tsx, load LSB of sp into x
+	csg65ce02_ram[0xa905] = 0x0b;		// tsy, load MSB of sp into y
 	csg65ce02_ram[0xa906] = 0x86;		// stx $f0
 	csg65ce02_ram[0xa907] = 0xf0;
 	csg65ce02_ram[0xa908] = 0x84;		// sty $f1
@@ -92,9 +92,11 @@ int main()
 
 	csg65ce02 cpu0;
 	bool irq_pin_host = true;			// the status of the irq pin is "owned" by the host system
+	bool nmi_pin_host = true;			// same story for nmi
 	csg65ce02_init(&cpu0);
-	csg65ce02_enable_breakpoints(&cpu0);		// in this setting, breakpoints are always enabled
-	csg65ce02_assign_irq_pin(&cpu0, &irq_pin_host);
+	csg65ce02_enable_breakpoints(&cpu0);			// in this setting, breakpoints are always enabled
+	csg65ce02_assign_irq_pin(&cpu0, &irq_pin_host);	//
+	csg65ce02_assign_nmi_pin(&cpu0, &nmi_pin_host);
 
 	// reset system and print welcome message
 	printf("resetting 65ce02...\n\n");

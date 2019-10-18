@@ -46,8 +46,8 @@ extern "C"
 		enum exception_types exception_type;
 		// irq pin
 		bool *irq_pin;
-		// nmi pin (NEEDS TO BE CHANGED INTO A POINTER)
-		bool nmi_pin;
+		// nmi pin
+		bool *nmi_pin;
 		bool nmi_pin_previous_state;	// extra boolean value to allow edge triggering
 
 		// info and pointer to a 64k array with breakpoint information
@@ -113,6 +113,12 @@ extern "C"
 	void	csg65ce02_push_byte(csg65ce02 *thisCPU, uint8_t byte);
 	uint8_t	csg65ce02_pull_byte(csg65ce02 *thisCPU);
 
+	// The irq and nmi pin are not owned by the cpu, in stead by the hosting application/machine.
+	// It is the responsibility of the hosting application to supply such pins by passing pointers to
+	// the next functions.
+	void csg65ce02_assign_irq_pin(csg65ce02 *thisCPU, bool *pin);
+	void csg65ce02_assign_nmi_pin(csg65ce02 *thisCPU, bool *pin);
+
 	//	Run a number of cycles on the cpu. The function takes a pointer to
 	//  an unsigned int in which the number of cycles processed by the cpu
 	//  will be written.
@@ -123,15 +129,6 @@ extern "C"
 	//	Note: when an instr takes only 1 cycle, a pending irq will not be acknowledged, it has to wait
 	//	--> How to implement this? --> just store the duration of the currently executed instruction
 	int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *processed_cycles);
-
-	// irq function - The irq pin is not owned by the cpu, in stead by the hosting application/machine
-	// It is the responsibility of the hosting application to supply such a pin by passing a pointer to
-	// a boolean value. irq is state triggered
-	void csg65ce02_assign_irq_pin(csg65ce02 *thisCPU, bool *pin);
-
-	// nmi functions
-	// edge triggered and must always be acknowledged
-	void csg65ce02_set_nmi(csg65ce02 *thisCPU, bool level);
 
 	//	Functions for convenience
 	void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string);
