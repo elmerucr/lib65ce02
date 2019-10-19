@@ -56,7 +56,8 @@ extern "C"
 		int			exit_code_run_function;
 
 		// for housekeeping of the execute function, taking care of re-entrance capabilities
-		unsigned int	cycle_count;						// sums up total no of cycl. consumed by exec function
+		int				initial_cycles;
+		int				remaining_cycles;
 		uint8_t			cycles_last_executed_instruction;	// to decide if irq/nmi will be acknowledged
 	} csg65ce02;
 
@@ -128,6 +129,9 @@ extern "C"
 	//
 	//	Note: when an instr takes only 1 cycle, a pending irq will not be acknowledged, it has to wait.
 	int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles);
+
+	// end the current timeslice (for instance when an external breakpoint has been found)
+	void csg65ce02_end_timeslice(csg65ce02 *thisCPU);
 
 	//	Functions for convenience
 	void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string);
