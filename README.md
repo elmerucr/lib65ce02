@@ -8,7 +8,7 @@ Please have a look at the [manual](./doc/manual.md) (= a work in progress!) for 
 Many emulation libraries for older cpu's already exist. This project serves my own learning experience and forms a crucial component of the [E64](https://github.com/elmerucr/E64) virtual computer system.
 ## Core functions
 ### Running cycles on the cpu
-Typically, this library will not take control of the main thread, in stead it will run a designated amount of cycles using the ````int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *processed_cycles);```` function that returns 0 on normal execution or 1 on a breakpoint encounter. It is possible to run only one cpu instruction by calling the this function with 0 cycles as an argument.
+Typically, this library will not take control of the main thread, instead it will run a designated amount of cycles using the ````int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles);```` function that returns the number of processed cycles. Variable ````exit_code_run_function```` inside the ````csg65ce02```` structure stores ````0```` on normal execution and ````1```` on a breakpoint encounter. It is possible to run only one cpu instruction by calling this function with 0 cycles as an argument.
 ### Disassembling instructions
 Beside the emulation core, the library also contains a disassembler. The function ````uint8_t csg65ce02_dasm(uint16_t address, char *buffer, int length)```` uses the memory read function from the emulation core. That way, the disassembler reads memory the same way as the cpu.
 ## Compiling

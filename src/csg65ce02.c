@@ -239,8 +239,9 @@ inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU)
 	}
 }
 
-//	Main function, run a number of cycles on the virtual cpu
-int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *processed_cycles)
+// Main function, run a number of cycles on the virtual cpu, returns the no of processed cycles
+// Exit code of the run function is stored in exit_code_run_function inside struct (0 on normal exit, 1 on ext breakpoint)
+int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles)
 {
 	uint8_t  current_opcode;
 	uint16_t effective_address_l;		// low byte address of the effective address, normally used
@@ -316,11 +317,9 @@ int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *proc
 	while(	(thisCPU->cycle_count < no_cycles) &&
 				!((thisCPU->breakpoint_array[PC_REG] == true) && (thisCPU->breakpoints_active == true) ) );
 
-	*processed_cycles = thisCPU->cycle_count;
+	thisCPU->exit_code_run_function = thisCPU->breakpoint_array[PC_REG] ? 1 : 0;
 
-	int result = thisCPU->breakpoint_array[PC_REG] ? 1 : 0;
-
-    return result;
+    return thisCPU->cycle_count;
 }
 
 inline void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t opcode, uint16_t *eal, uint16_t *eah)

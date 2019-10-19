@@ -53,6 +53,7 @@ extern "C"
 		// info and pointer to a 64k array with breakpoint information
 		bool		breakpoints_active;
 		bool		*breakpoint_array;
+		int			exit_code_run_function;
 
 		// for housekeeping of the execute function, taking care of re-entrance capabilities
 		unsigned int	cycle_count;						// sums up total no of cycl. consumed by exec function
@@ -119,16 +120,14 @@ extern "C"
 	void csg65ce02_assign_irq_pin(csg65ce02 *thisCPU, bool *pin);
 	void csg65ce02_assign_nmi_pin(csg65ce02 *thisCPU, bool *pin);
 
-	//	Run a number of cycles on the cpu. The function takes a pointer to
-	//  an unsigned int in which the number of cycles processed by the cpu
-	//  will be written.
+	//	Run a number of cycles on the cpu.
 	//
-	//	When called with 0 cycles, only one instruction will be executed
-	//	The function returns 0 on normal execution, 1 on a cpu breakpoint.
+	//	When called with 0 cycles, only one instruction will be executed.
+	//	The function returns  no of processed cycles
+	//	exit_code_run_function stores 0 on normal execution, 1 on an external breakpoint.
 	//
-	//	Note: when an instr takes only 1 cycle, a pending irq will not be acknowledged, it has to wait
-	//	--> How to implement this? --> just store the duration of the currently executed instruction
-	int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles, unsigned int *processed_cycles);
+	//	Note: when an instr takes only 1 cycle, a pending irq will not be acknowledged, it has to wait.
+	int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles);
 
 	//	Functions for convenience
 	void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string);

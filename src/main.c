@@ -230,8 +230,7 @@ int main()
 			{
 				sscanf( token1, "%i", &n);
 			}
-			unsigned int processed_cycles;
-			csg65ce02_run(&cpu0,n,&processed_cycles);
+			unsigned int processed_cycles = csg65ce02_run(&cpu0, n);
 			printf("cpu ran %i cycles of %i demanded\n\n",processed_cycles,n);
 			csg65ce02_dump_status(&cpu0, large_text_buffer);
 			printf("%s\n\n", large_text_buffer);
