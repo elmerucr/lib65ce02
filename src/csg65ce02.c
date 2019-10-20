@@ -321,6 +321,22 @@ int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles)
     return thisCPU->initial_cycles - thisCPU->remaining_cycles;
 }
 
+int csg65ce02_cycles_run(csg65ce02 *thisCPU)
+{
+	return thisCPU->initial_cycles = thisCPU->remaining_cycles;
+}
+
+int csg65ce02_cycles_remaining(csg65ce02 *thisCPU)
+{
+	return thisCPU->remaining_cycles;
+}
+
+void csg65ce02_add_cycles(csg65ce02 *thisCPU, unsigned int cycles)
+{
+	thisCPU->initial_cycles += cycles;
+	thisCPU->remaining_cycles += cycles;
+}
+
 void csg65ce02_end_timeslice(csg65ce02 *thisCPU)
 {
 	thisCPU->initial_cycles -= thisCPU->remaining_cycles;

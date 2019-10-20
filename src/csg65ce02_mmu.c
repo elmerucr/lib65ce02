@@ -25,7 +25,7 @@ void csg65ce02_mmu_cleanup()
 }
 
 // memory access functions implementation:
-uint8_t csg65ce02_read_byte(uint16_t address)
+inline uint8_t csg65ce02_read_byte(uint16_t address)
 {
 	return csg65ce02_ram[address];
 }

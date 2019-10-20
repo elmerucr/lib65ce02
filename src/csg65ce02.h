@@ -130,8 +130,11 @@ extern "C"
 	//	Note: when an instr takes only 1 cycle, a pending irq will not be acknowledged, it has to wait.
 	int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles);
 
-	// end the current timeslice (for instance when an external breakpoint has been found)
-	void csg65ce02_end_timeslice(csg65ce02 *thisCPU);
+	// Read and change cycle information during csg65ce02_run
+	int csg65ce02_cycles_run(csg65ce02 *thisCPU);						// return cycles so far
+	int csg65ce02_cycles_remaining(csg65ce02 *thisCPU);					// return cycles left
+	void csg65ce02_add_cycles(csg65ce02 *thisCPU, unsigned int cycles);	// increase cycles within timeslice
+	void csg65ce02_end_timeslice(csg65ce02 *thisCPU);					// end current timeslice
 
 	//	Functions for convenience
 	void csg65ce02_dump_status(csg65ce02 *thisCPU, char *temp_string);
