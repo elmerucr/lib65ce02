@@ -311,8 +311,11 @@ int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles)
 		// (2) Do we hit a breakpoint at the current program counter?
         if( thisCPU->breakpoints_active )
         {
-            if( thisCPU->breakpoint_array[PC_REG] ) csg65ce02_end_timeslice(thisCPU);
-            thisCPU->exit_code_run_function = 1;
+            if( thisCPU->breakpoint_array[PC_REG] )
+            {
+                csg65ce02_end_timeslice(thisCPU);
+                thisCPU->exit_code_run_function = 1;
+            }
         }
     }
 	while(thisCPU->remaining_cycles > 0);
