@@ -307,7 +307,7 @@ int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles)
 		}
 
 		// Check for breakpoint conditions:
-		// (1) Do we respond to breakpoints at all? - and:
+		// (1) Do we respond to breakpoints at all?
 		// (2) Do we hit a breakpoint at the current program counter?
         if( thisCPU->breakpoints_active )
         {
@@ -319,6 +319,7 @@ int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles)
         }
     }
 	while(thisCPU->remaining_cycles > 0);
+
 	// return number of consumed cycles
     return thisCPU->initial_cycles - thisCPU->remaining_cycles;
 }
