@@ -239,7 +239,7 @@ inline uint8_t csg65ce02_pull_byte(csg65ce02 *thisCPU)
 	}
 }
 
-// Main function, run a number of cycles on the virtual cpu, returns the no of processed cycles
+// Most important function, run a number of cycles on the virtual cpu, returns the no of processed cycles
 // Exit code of the run function is stored in exit_code_run_function inside struct (0 on normal exit, 1 on ext breakpoint)
 int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles)
 {
@@ -265,31 +265,31 @@ int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles)
 		}
 		else
 		{   // last instr took more than 1 cycle
-            if(( *thisCPU->nmi_pin == false) && (thisCPU->nmi_pin_previous_state == true))
+			if(( *thisCPU->nmi_pin == false) && (thisCPU->nmi_pin_previous_state == true))
 			{
-                thisCPU->exception_type = NMI;
-            }
+				thisCPU->exception_type = NMI;
+			}
 			else
 			{
-                if(*thisCPU->irq_pin == true)
+				if(*thisCPU->irq_pin == true)
 				{						            		// irq pin is up
-                    thisCPU->exception_type = NONE;
-                }
+					thisCPU->exception_type = NONE;
+				}
 				else
 				{									        // irq pin is down
-                    if(thisCPU->i_flag)
+					if(thisCPU->i_flag)
 					{						            	// irq masked by flag
-                        thisCPU->exception_type = NONE;
-                    }
+						thisCPU->exception_type = NONE;
+					}
 					else
 					{									    // irq not masked by flag
-                        thisCPU->exception_type = IRQ;
-                    }
-                }
-            }
+						thisCPU->exception_type = IRQ;
+					}
+				}
+			}
 			// update nmi pin previous state to current state
-        	thisCPU->nmi_pin_previous_state = *thisCPU->nmi_pin;
-        }
+			thisCPU->nmi_pin_previous_state = *thisCPU->nmi_pin;
+		}
 
 		current_opcode = thisCPU->exception_type ? 0x00 : csg65ce02_read_byte(PC_REG);
 
@@ -309,15 +309,15 @@ int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles)
 		// Check for breakpoint conditions:
 		// (1) Do we respond to breakpoints at all?
 		// (2) Do we hit a breakpoint at the current program counter?
-        if( thisCPU->breakpoints_active )
-        {
-            if( thisCPU->breakpoint_array[PC_REG] )
-            {
-                csg65ce02_end_timeslice(thisCPU);
-                thisCPU->exit_code_run_function = 1;
-            }
-        }
-    }
+		if( thisCPU->breakpoints_active )
+		{
+			if( thisCPU->breakpoint_array[PC_REG] )
+			{
+				csg65ce02_end_timeslice(thisCPU);
+				thisCPU->exit_code_run_function = 1;
+			}
+		}
+	}
 	while(thisCPU->remaining_cycles > 0);
 
 	// return number of consumed cycles
@@ -437,14 +437,11 @@ inline void csg65ce02_calculate_effective_address(csg65ce02 *thisCPU, uint8_t op
 	};
 }
 
-inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t eal, uint16_t eah)
+inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t effective_address_l, uint16_t effective_address_h)
 {
-	uint8_t temp_byte;
+	uint8_t temp_byte1;
 	uint8_t temp_byte2;
 	uint16_t temp_word;
-
-	uint16_t effective_address_l = eal;
-	uint16_t effective_address_h = eah;
 
 	switch( opcode )
 	{
@@ -471,15 +468,15 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			}
 
 			// push sr onto stack
-			temp_byte =	thisCPU->n_flag |
-						thisCPU->v_flag |
-						thisCPU->e_flag |
-						temp_byte2     |	// pushes B_FLAG_VALUE when cause was brk instruction
-						thisCPU->d_flag |
-						thisCPU->i_flag |    // yes, the i flag as it was during last instruction is pushed!
-						thisCPU->z_flag |
-						thisCPU->c_flag;
-			csg65ce02_push_byte(thisCPU, temp_byte);
+			temp_byte1 =	thisCPU->n_flag |
+							thisCPU->v_flag |
+							thisCPU->e_flag |
+							temp_byte2     |	// pushes B_FLAG_VALUE when cause was brk instruction
+							thisCPU->d_flag |
+							thisCPU->i_flag |    // yes, the i flag as it was during last instruction is pushed!
+							thisCPU->z_flag |
+							thisCPU->c_flag;
+			csg65ce02_push_byte(thisCPU, temp_byte1);
 			// set interrupt disable flag
 			thisCPU->i_flag = I_FLAG_VALUE;
 
@@ -520,22 +517,22 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			break;
 		case 0x04 :								// tsb bp
 		case 0x0c :								// tsb abs
-			temp_byte = A_REG;
+			temp_byte1 = A_REG;
 			temp_byte2 = csg65ce02_read_byte(effective_address_l);
-			csg65ce02_write_byte(effective_address_l, temp_byte | temp_byte2);
-			SET_STATUS_FOR_Z(temp_byte & temp_byte2);
+			csg65ce02_write_byte(effective_address_l, temp_byte1 | temp_byte2);
+			SET_STATUS_FOR_Z(temp_byte1 & temp_byte2);
 			break;
 		case 0x06 :								// asl bp
 		case 0x0e :								// asl abs
 		case 0x16 :								// asl bp,x
 		case 0x1e :								// asl abs,x
-			temp_byte = csg65ce02_read_byte(effective_address_l);
-			if(temp_byte & 0x80)
+			temp_byte1 = csg65ce02_read_byte(effective_address_l);
+			if(temp_byte1 & 0x80)
 			{
 				thisCPU->c_flag = C_FLAG_VALUE;
 			}
-			csg65ce02_write_byte(effective_address_l, (temp_byte << 1) );
-			SET_STATUS_FOR_NZ((temp_byte << 1))
+			csg65ce02_write_byte(effective_address_l, (temp_byte1 << 1) );
+			SET_STATUS_FOR_NZ((temp_byte1 << 1))
 			break;
 		case 0x07 :								// rmb 0,bp
 		case 0x17 :								// rmb 1,bp
@@ -554,34 +551,34 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0xe7 :								// smb 0,bp
 		case 0xf7 :								// smb 0,bp
 			// Which bit from bp address is going to be tested? Store it in temp_byte
-			temp_byte = (opcode & 0x70) >> 4;
+			temp_byte1 = (opcode & 0x70) >> 4;
 			if(opcode & 0x80)
 			{						// set memory bit
-				csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) | (0x01 << temp_byte) );
+				csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) | (0x01 << temp_byte1) );
 			}
 			else
 			{						// reset (clear) memory bit
-				csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) & (0xff - (0x01 << temp_byte)));
+				csg65ce02_write_byte(effective_address_l, csg65ce02_read_byte(effective_address_l) & (0xff - (0x01 << temp_byte1)));
 			}
 			break;
 		case 0x08 :								// php (b_flag does not exist, but it will push the value anyway!)
-			temp_byte =	thisCPU->n_flag |
-						thisCPU->v_flag |
-						thisCPU->e_flag |
-						B_FLAG_VALUE     |
-						thisCPU->d_flag |
-						thisCPU->i_flag |
-						thisCPU->z_flag |
-						thisCPU->c_flag;
-			csg65ce02_push_byte(thisCPU, temp_byte);
+			temp_byte1 =	thisCPU->n_flag |
+							thisCPU->v_flag |
+							thisCPU->e_flag |
+							B_FLAG_VALUE     |
+							thisCPU->d_flag |
+							thisCPU->i_flag |
+							thisCPU->z_flag |
+							thisCPU->c_flag;
+			csg65ce02_push_byte(thisCPU, temp_byte1);
 			break;
 		case 0x0a :								// asl accumulator
-			temp_byte = thisCPU->a;
-			if(temp_byte & 0x80)
+			temp_byte1 = thisCPU->a;
+			if(temp_byte1 & 0x80)
 			{
 				thisCPU->c_flag = C_FLAG_VALUE;
 			}
-			thisCPU->a = (temp_byte << 1);
+			thisCPU->a = (temp_byte1 << 1);
 			SET_STATUS_FOR_NZ(thisCPU->a);
 			break;
 		case 0x0b :								// tsy
@@ -607,11 +604,11 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			// Calculate effective basepage address, store it in temp_word
 			temp_word = op1 | (B_REG << 8);
 			// Which bit will be tested for? And store it in temp_byte
-			temp_byte = (opcode & 0x70) >> 4;
+			temp_byte1 = (opcode & 0x70) >> 4;
 			// effect. address (rel) was already calculated
 			if(opcode & 0x80)
 			{						// test for set
-				if(csg65ce02_read_byte(temp_word) & (0x01<<temp_byte))
+				if(csg65ce02_read_byte(temp_word) & (0x01<<temp_byte1))
 				{
 					PC_REG = effective_address_l;
 				}
@@ -622,7 +619,7 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			}
 			else
 			{								// test for clear
-				if(!(csg65ce02_read_byte(temp_word) & (0x01<<temp_byte)))
+				if(!(csg65ce02_read_byte(temp_word) & (0x01<<temp_byte1)))
 				{
 					PC_REG = effective_address_l;
 				}
@@ -645,10 +642,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			break;
 		case 0x14 :								// trb bp
 		case 0x1c :								// trb abs
-			temp_byte = A_REG;
+			temp_byte1 = A_REG;
 			temp_byte2 = csg65ce02_read_byte(effective_address_l);
-			csg65ce02_write_byte(effective_address_l, (~temp_byte) & temp_byte2);
-			SET_STATUS_FOR_Z(temp_byte & temp_byte2);
+			csg65ce02_write_byte(effective_address_l, (~temp_byte1) & temp_byte2);
+			SET_STATUS_FOR_Z(temp_byte1 & temp_byte2);
 			break;
 		case 0x18 :								// clc instruction
 			thisCPU->c_flag = 0x00;
@@ -685,21 +682,21 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x34 :								// bit bp,x
 		case 0x3c :								// bit abs,x
 		case 0x89 :								// bit immediate (note 65c02 not n&v flags!)
-			temp_byte = csg65ce02_read_byte(effective_address_l);
-			SET_STATUS_FOR_Z(temp_byte & A_REG);
-			thisCPU->n_flag = temp_byte & N_FLAG_VALUE;
-			thisCPU->v_flag = temp_byte & V_FLAG_VALUE;
+			temp_byte1 = csg65ce02_read_byte(effective_address_l);
+			SET_STATUS_FOR_Z(temp_byte1 & A_REG);
+			thisCPU->n_flag = temp_byte1 & N_FLAG_VALUE;
+			thisCPU->v_flag = temp_byte1 & V_FLAG_VALUE;
 			break;
 		case 0x28 :								// plp
-			temp_byte = csg65ce02_pull_byte(thisCPU);
-			thisCPU->n_flag = temp_byte & N_FLAG_VALUE;
-			thisCPU->v_flag = temp_byte & V_FLAG_VALUE;
+			temp_byte1 = csg65ce02_pull_byte(thisCPU);
+			thisCPU->n_flag = temp_byte1 & N_FLAG_VALUE;
+			thisCPU->v_flag = temp_byte1 & V_FLAG_VALUE;
 					// no e flag, only to be changed by cle and see instructions
 					// no b flag of course...
-			thisCPU->d_flag = temp_byte & D_FLAG_VALUE;
-			thisCPU->i_flag = temp_byte & I_FLAG_VALUE;
-			thisCPU->z_flag = temp_byte & Z_FLAG_VALUE;
-			thisCPU->c_flag = temp_byte & C_FLAG_VALUE;
+			thisCPU->d_flag = temp_byte1 & D_FLAG_VALUE;
+			thisCPU->i_flag = temp_byte1 & I_FLAG_VALUE;
+			thisCPU->z_flag = temp_byte1 & Z_FLAG_VALUE;
+			thisCPU->c_flag = temp_byte1 & C_FLAG_VALUE;
 			break;
 		case 0x2b :								// tys
 			SP_REG = (SP_REG & 0x00ff) | (Y_REG << 8);
@@ -727,15 +724,15 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			SET_STATUS_FOR_NZ(Z_REG);
 			break;
 		case 0x40 :								// rti
-			temp_byte = csg65ce02_pull_byte(thisCPU);
-			thisCPU->n_flag = temp_byte & N_FLAG_VALUE;
-			thisCPU->v_flag = temp_byte & V_FLAG_VALUE;
-			thisCPU->e_flag = temp_byte & E_FLAG_VALUE;
+			temp_byte1 = csg65ce02_pull_byte(thisCPU);
+			thisCPU->n_flag = temp_byte1 & N_FLAG_VALUE;
+			thisCPU->v_flag = temp_byte1 & V_FLAG_VALUE;
+			thisCPU->e_flag = temp_byte1 & E_FLAG_VALUE;
 					// no b flag to set of course...
-			thisCPU->d_flag = temp_byte & D_FLAG_VALUE;
-			thisCPU->i_flag = temp_byte & I_FLAG_VALUE;
-			thisCPU->z_flag = temp_byte & Z_FLAG_VALUE;
-			thisCPU->c_flag = temp_byte & C_FLAG_VALUE;
+			thisCPU->d_flag = temp_byte1 & D_FLAG_VALUE;
+			thisCPU->i_flag = temp_byte1 & I_FLAG_VALUE;
+			thisCPU->z_flag = temp_byte1 & Z_FLAG_VALUE;
+			thisCPU->c_flag = temp_byte1 & C_FLAG_VALUE;
 			// restore the program counter
 			PC_REG = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
 			// note: rti doesn't need a correction of pc afterwards (unlike rts)
@@ -791,11 +788,11 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0x75 :								// adc bp,x
 		case 0x79 :								// adc abs,y
 		case 0x7d :								// adc abs,x
-			temp_byte = csg65ce02_read_byte(effective_address_l);
-			temp_word = A_REG + temp_byte + thisCPU->c_flag;
+			temp_byte1 = csg65ce02_read_byte(effective_address_l);
+			temp_word = A_REG + temp_byte1 + thisCPU->c_flag;
 			if(temp_word & 0xff00) thisCPU->c_flag = C_FLAG_VALUE; else thisCPU->c_flag = 0;
 			temp_byte2 = temp_word & 0xff;
-			if(((A_REG^temp_byte2) & (temp_byte^temp_byte2)) & 0x80)
+			if(((A_REG^temp_byte2) & (temp_byte1^temp_byte2)) & 0x80)
 			{
 				thisCPU->v_flag = V_FLAG_VALUE;
 			}
@@ -807,10 +804,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 			SET_STATUS_FOR_NZ(A_REG);
 			break;
         case 0x62 :                             // rtn immediate
-            temp_byte = op1;    // before manipulating PC_REG, we need to get the operand!!!! => Nasty bug otherwise!
+            temp_byte1 = op1;    // before manipulating PC_REG, we need to get the operand!!!! => Nasty bug otherwise!
             PC_REG = csg65ce02_pull_byte(thisCPU) | ( csg65ce02_pull_byte(thisCPU) << 8 );
             PC_REG = (uint16_t)(PC_REG+1);        // increase pc by 1 and wrap if necessary
-            for(int i=0; i<temp_byte; i++) csg65ce02_pull_byte(thisCPU);
+            for(int i=0; i<temp_byte1; i++) csg65ce02_pull_byte(thisCPU);
             break;
 		case 0x64 :								// stz bp
 		case 0x74 :								// stz bp,x
@@ -997,10 +994,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0xce :								// dec abs
 		case 0xd6 :								// dec bp,x
 		case 0xde :								// dec abs,x
-			temp_byte = csg65ce02_read_byte(effective_address_l);
-			temp_byte--;
-			csg65ce02_write_byte(effective_address_l, temp_byte);
-			SET_STATUS_FOR_NZ(temp_byte);
+			temp_byte1 = csg65ce02_read_byte(effective_address_l);
+			temp_byte1--;
+			csg65ce02_write_byte(effective_address_l, temp_byte1);
+			SET_STATUS_FOR_NZ(temp_byte1);
 			break;
 		case 0xc8 :								// inc y
 			Y_REG++;
@@ -1048,10 +1045,10 @@ inline void csg65ce02_handle_opcode(csg65ce02 *thisCPU, uint8_t opcode, uint16_t
 		case 0xee :								// inc abs
 		case 0xf6 :								// inc bp,x
 		case 0xfe :								// inc abs,x
-			temp_byte = csg65ce02_read_byte(effective_address_l);
-			temp_byte++;
-			csg65ce02_write_byte(effective_address_l, temp_byte);
-			SET_STATUS_FOR_NZ(temp_byte);
+			temp_byte1 = csg65ce02_read_byte(effective_address_l);
+			temp_byte1++;
+			csg65ce02_write_byte(effective_address_l, temp_byte1);
+			SET_STATUS_FOR_NZ(temp_byte1);
 			break;
 		case 0xe8 :								// inc x
 			X_REG++;

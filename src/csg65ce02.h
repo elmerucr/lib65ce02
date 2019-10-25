@@ -44,9 +44,9 @@ extern "C"
 		uint8_t		c_flag;		// Carry
 
 		enum exception_types exception_type;
-		// irq pin
+
+		// pins
 		bool *irq_pin;
-		// nmi pin
 		bool *nmi_pin;
 		bool nmi_pin_previous_state;	// extra boolean value to allow edge triggering
 
