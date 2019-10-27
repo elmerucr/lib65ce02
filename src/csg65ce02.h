@@ -53,6 +53,7 @@ extern "C"
 		// info and pointer to a 64k array with breakpoint information
 		bool		breakpoints_active;
 		bool		*breakpoint_array;
+		bool		force_next_instruction;
 		int			exit_code_run_function;
 
 		// for housekeeping of the execute function, taking care of re-entrance capabilities

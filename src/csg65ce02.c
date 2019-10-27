@@ -147,6 +147,7 @@ void csg65ce02_init(csg65ce02 *thisCPU)
 	thisCPU->breakpoints_active = false;
 	thisCPU->breakpoint_array = (bool *)malloc(65536 * sizeof(bool));
 	for(int i=0; i<65536; i++) thisCPU->breakpoint_array[i] = false;
+	thisCPU->force_next_instruction = false;
 }
 
 // Cleanup procedure
@@ -252,73 +253,90 @@ int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles)
 
     thisCPU->exit_code_run_function = 0;
 
-	// actual instruction loop
-	do
+	// Check for breakpoint conditions before the loop starts
+	if( thisCPU->breakpoints_active == true )
 	{
-		// check exception conditions
-		// MIGHT BE REPLACED BY A TABLE IN THE FUTURE
-		if(thisCPU->cycles_last_executed_instruction == 1)
-		{   // last instr took 1 cycle, skip all exceptions
-			thisCPU->exception_type = NONE;
-			// note that nmi previous state is not updated here
-			// if we would do so, the nmi wouldn't be catched after the first non-1-cycle instruction
-		}
-		else
-		{   // last instr took more than 1 cycle
-			if(( *thisCPU->nmi_pin == false) && (thisCPU->nmi_pin_previous_state == true))
-			{
-				thisCPU->exception_type = NMI;
-			}
-			else
-			{
-				if(*thisCPU->irq_pin == true)
-				{						            		// irq pin is up
-					thisCPU->exception_type = NONE;
-				}
-				else
-				{									        // irq pin is down
-					if(thisCPU->i_flag)
-					{						            	// irq masked by flag
-						thisCPU->exception_type = NONE;
-					}
-					else
-					{									    // irq not masked by flag
-						thisCPU->exception_type = IRQ;
-					}
-				}
-			}
-			// update nmi pin previous state to current state
-			thisCPU->nmi_pin_previous_state = *thisCPU->nmi_pin;
-		}
-
-		current_opcode = thisCPU->exception_type ? 0x00 : csg65ce02_read_byte(PC_REG);
-
-		csg65ce02_calculate_effective_address(thisCPU, current_opcode, &effective_address_l, &effective_address_h);
-
-		csg65ce02_handle_opcode(thisCPU, current_opcode, effective_address_l, effective_address_h);
-
-		thisCPU->cycles_last_executed_instruction = cycles_per_instruction[current_opcode];
-		thisCPU->remaining_cycles -= thisCPU->cycles_last_executed_instruction;
-
-		// increase pc only if the instruction does not actively change the pc by itself
-		if( !modify_pc_per_instruction[current_opcode] )
+		if( thisCPU->breakpoint_array[PC_REG] == true )
 		{
-			PC_REG += bytes_per_instruction[current_opcode];
-		}
-
-		// Check for breakpoint conditions:
-		// (1) Do we respond to breakpoints at all?
-		// (2) Do we hit a breakpoint at the current program counter?
-		if( thisCPU->breakpoints_active )
-		{
-			if( thisCPU->breakpoint_array[PC_REG] )
+			if( thisCPU->force_next_instruction == false )
 			{
-				csg65ce02_end_timeslice(thisCPU);
+				// we have a breakpoint before the loop starts
 				thisCPU->exit_code_run_function = 1;
 			}
 		}
 	}
-	while(thisCPU->remaining_cycles > 0);
+	thisCPU->force_next_instruction = false;
+
+	// actual instruction loop
+	if( !(thisCPU->exit_code_run_function) )
+	{
+		do
+		{
+			// check exception conditions
+			// MIGHT BE REPLACED BY A TABLE IN THE FUTURE
+			if(thisCPU->cycles_last_executed_instruction == 1)
+			{   // last instr took 1 cycle, skip all exceptions
+				thisCPU->exception_type = NONE;
+				// note that nmi previous state is not updated here
+				// if we would do so, the nmi wouldn't be catched after the first non-1-cycle instruction
+			}
+			else
+			{   // last instr took more than 1 cycle
+				if(( *thisCPU->nmi_pin == false) && (thisCPU->nmi_pin_previous_state == true))
+				{
+					thisCPU->exception_type = NMI;
+				}
+				else
+				{
+					if(*thisCPU->irq_pin == true)
+					{						            		// irq pin is up
+						thisCPU->exception_type = NONE;
+					}
+					else
+					{									        // irq pin is down
+						if(thisCPU->i_flag)
+						{						            	// irq masked by flag
+							thisCPU->exception_type = NONE;
+						}
+						else
+						{									    // irq not masked by flag
+							thisCPU->exception_type = IRQ;
+						}
+					}
+				}
+				// update nmi pin previous state to current state
+				thisCPU->nmi_pin_previous_state = *thisCPU->nmi_pin;
+			}
+
+			current_opcode = thisCPU->exception_type ? 0x00 : csg65ce02_read_byte(PC_REG);
+
+			csg65ce02_calculate_effective_address(thisCPU, current_opcode, &effective_address_l, &effective_address_h);
+
+			csg65ce02_handle_opcode(thisCPU, current_opcode, effective_address_l, effective_address_h);
+
+			thisCPU->cycles_last_executed_instruction = cycles_per_instruction[current_opcode];
+			thisCPU->remaining_cycles -= thisCPU->cycles_last_executed_instruction;
+
+			// increase pc only if the instruction does not actively change the pc by itself
+			if( !modify_pc_per_instruction[current_opcode] )
+			{
+				PC_REG += bytes_per_instruction[current_opcode];
+			}
+
+			// Check for breakpoint conditions:
+			// (1) Do we respond to breakpoints at all?
+			// (2) Do we hit a breakpoint at the current program counter?
+			if( thisCPU->breakpoints_active )
+			{
+				if( thisCPU->breakpoint_array[PC_REG] )
+				{
+					csg65ce02_end_timeslice(thisCPU);
+					thisCPU->exit_code_run_function = 1;
+				}
+			}
+		}
+		while(thisCPU->remaining_cycles > 0);
+	}
 
 	// return number of consumed cycles
     return thisCPU->initial_cycles - thisCPU->remaining_cycles;
