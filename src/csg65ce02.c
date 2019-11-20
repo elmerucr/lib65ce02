@@ -273,7 +273,6 @@ int csg65ce02_run(csg65ce02 *thisCPU, unsigned int no_cycles)
 		do
 		{
 			// check exception conditions
-			// MIGHT BE REPLACED BY A TABLE IN THE FUTURE
 			if(thisCPU->cycles_last_executed_instruction == 1)
 			{   // last instr took 1 cycle, skip all exceptions
 				thisCPU->exception_type = NONE;
